@@ -21,7 +21,7 @@ exceção foi aplicada até aqui.
 
 | Fase | Arquivo | Status |
 |---|---|---|
-| Fase 0 — Setup e arquitetura | `01_FASE_0_SETUP_ARQUITETURA.md` | Em andamento — infraestrutura e VRs críticos fechados; bônus (multimodelo/híbrida/API pública) pendentes |
+| Fase 0 — Setup e arquitetura | `01_FASE_0_SETUP_ARQUITETURA.md` | Infraestrutura e VRs críticos fechados. Só bônus (multimodelo/híbrida/API pública) pendentes — não bloqueiam as demais fases |
 | Fase 1 — Production COS / interoperabilidade | `02_FASE_1_PYPROD_INTEROPERABILITY.md` | Objetivo principal cumprido — Service/Process/Operation com adaptador de arquivo, mensagem real ponta a ponta, cenário de falha/recuperação testado e reproduzível (`docs/experiments/01_falha_recuperacao_producao.md`). Falta apenas Business Rules (bônus opcional) |
 | Fase 2 — Production Monitor / telemetria | `03_FASE_2_PRODUCTION_MONITOR_WSGI_TELEMETRY.md` | Primeira versão concluída e validada visualmente pelo proprietário. Série temporal persistida fica como melhoria futura |
 | Fase 3 — RAG Assistant | `04_FASE_3_RAG_ASSISTANT.md` | Primeira versão completa e testada: ingestão, chunking, armazenamento vetorial, recuperação, geração com citação, abstenção calibrada, página de consulta. Falta busca híbrida (bônus) e validação visual |
@@ -37,12 +37,14 @@ desatualizado.
 
 | Datas | Trabalho e ponto de controle | Status em 09/09/2026 |
 |---|---|---|
-| 08–10/09 | Fase 0: ambiente, repositório, IRIS/contêineres, arquitetura, estrutura inicial do dashboard | Ambiente, VRs críticos e namespace/database prontos. Estrutura inicial do dashboard **ainda não iniciada**. |
-| 11–14/09 | Fase 1 + avanço da Fase 2: Production COS, hosts, simulação controlada, Monitor ligado a fontes reais | Fase 1 iniciada adiantada (09/09): três hosts + adaptador provados. Simulação de falha e Fase 2 ainda não iniciadas |
-| 15–17/09 | Fases 3 e 4: corpus, embeddings, busca híbrida, Investigator | Não iniciada |
+| 08–10/09 | Fase 0: ambiente, repositório, IRIS/contêineres, arquitetura, estrutura inicial do dashboard | ✅ Ambiente, VRs críticos e namespace/database prontos. Dashboard inicial coberto pelo Monitor/RAG, adiantado |
+| 11–14/09 | Fase 1 + avanço da Fase 2: Production COS, hosts, simulação controlada, Monitor ligado a fontes reais | ✅ **Concluído adiantado, no dia 09/09** — Fase 1 e Fase 2 completas (ver seção 2) |
+| 15–17/09 | Fases 3 e 4: corpus, embeddings, busca híbrida, Investigator | 🟡 Fase 3 (RAG) completa, adiantada, no dia 09/09. Busca híbrida (bônus) e Fase 4 (Investigator) ainda não iniciadas |
 | 18–19/09 | Fase 5: API/integrações, testes, instalação limpa, documentação | Não iniciada |
-| 20/09 | Demo completa, gravação, README, artigo, auditoria da matriz | Não iniciada |
+| 20/09 | Demo completa, gravação, README, artigo, auditoria da matriz | README já existe (criado 09/09); gravação/artigo pendentes |
 | 21/09 | Conferência final e submissão | Não iniciada |
+
+**Leitura honesta:** o ritmo está bem adiantado em relação ao cronograma original — três fases (0, 1, 2) mais a Fase 3 (RAG) já têm versões funcionais testadas no dia 1 da janela de trabalho real. Isso é adiantamento de sequência, não validação de que não falta trabalho: bônus opcionais (Business Rules, busca híbrida, multimodelo, API pública), a Fase 4 inteira, hardening/testes formais, vídeo e artigo continuam por fazer.
 
 `VERIFY_REQUIRED`: horário/fuso oficial de corte da submissão — não
 presumir 23h59 (herdado do contexto, ainda aberto).
@@ -95,6 +97,24 @@ presumir 23h59 (herdado do contexto, ainda aberto).
   durante a falha. Erro real de compilação encontrado e documentado:
   `Parameter` com underscore quebra `..#NOME` (operador de concatenação
   do ObjectScript interfere no parser). Ver `03_FASE_2_...md`.
+- **09/09/2026** — Fase 3 iniciada: decisão de provedor de IA (Google
+  Gemini, tier gratuito — ChatGPT/Claude.ai descartados por não incluir
+  API na assinatura de chat; OpenAI API sem tier gratuito confirmado;
+  Cohere trocado por restrição de uso comercial). Chave armazenada em
+  `Ens.Config.Credentials`. `Guardian.RAG.GeminiClient` implementado e
+  testado ao vivo (embeddings 768-dim + geração). Configuração SSL de
+  saída (`PublicHTTPS`) criada para HTTPS a hosts públicos.
+- **09/09/2026** — Fase 3 (RAG Assistant) primeira versão completa:
+  esquema `Guardian_RAG.Document`/`Chunk` (VECTOR 768-dim, DDL direto),
+  chunking por parágrafo com sobreposição, corpus inicial de 79
+  fragmentos (docs do próprio projeto), recuperação `VECTOR_COSINE` + top
+  5, geração com citação de fonte, abstenção calibrada em 0.58 (dois
+  pontos reais observados), página `Guardian.UI.RAGPage`. Erros reais
+  corrigidos: `%SQL.Statement` sem `%GetLastIdentity` (usar `%ROWID`),
+  acesso incorreto a propriedade de `%DynamicObject` via `$Get` (usar
+  `%Get`), falso alarme de encoding (bug era só exibição de terminal,
+  confirmado por hexdump), e tratamento de indisponibilidade real da API
+  (503) sem derrubar a página. Ver `04_FASE_3_RAG_ASSISTANT.md`.
 
 ## 5. Registro de pendências (VERIFY_REQUIRED)
 
@@ -139,27 +159,6 @@ comunidade), consolidada em 09/09/2026:
 Pendente: artigo da comunidade (português, com tags exigidas — ver
 contexto seção 5), vídeo explicativo, e o próprio conteúdo do `README.md`
 (criado nesta sessão, ver `04_...`/commits).
-
-- **09/09/2026** — Fase 3 iniciada: decisão de provedor de IA (Google
-  Gemini, tier gratuito — ChatGPT/Claude.ai descartados por não incluir
-  API na assinatura de chat; OpenAI API sem tier gratuito confirmado;
-  Cohere trocado por restrição de uso comercial). Chave armazenada em
-  `Ens.Config.Credentials`. `Guardian.RAG.GeminiClient` implementado e
-  testado ao vivo (embeddings 768-dim + geração). Configuração SSL de
-  saída (`PublicHTTPS`) criada para HTTPS a hosts públicos. Ver
-  `04_FASE_3_RAG_ASSISTANT.md`.
-
-- **09/09/2026** — Fase 3 (RAG Assistant) primeira versão completa:
-  esquema `Guardian_RAG.Document`/`Chunk` (VECTOR 768-dim, DDL direto),
-  chunking por parágrafo com sobreposição, corpus inicial de 79
-  fragmentos (docs do próprio projeto), recuperação `VECTOR_COSINE` + top
-  5, geração com citação de fonte, abstenção calibrada em 0.58 (dois
-  pontos reais observados), página `Guardian.UI.RAGPage`. Erros reais
-  corrigidos: `%SQL.Statement` sem `%GetLastIdentity` (usar `%ROWID`),
-  acesso incorreto a propriedade de `%DynamicObject` via `$Get` (usar
-  `%Get`), falso alarme de encoding (bug era só exibição de terminal,
-  confirmado por hexdump), e tratamento de indisponibilidade real da API
-  (503) sem derrubar a página. Ver `04_FASE_3_RAG_ASSISTANT.md`.
 
 ## 8. Próximo passo imediato
 
