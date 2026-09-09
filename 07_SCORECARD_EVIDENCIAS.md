@@ -61,6 +61,27 @@
 - Estado: **confirmado**. Nenhuma restrição de licença observada.
 - Impacto: viabiliza o bônus de Foreign Table (+1) sem exceção de edição.
 
+## Decisão de identidade visual — 09/09/2026
+
+- Fonte: `ImagemMatriz.png` (fornecida pelo proprietário) continha a arte do
+  produto "IRIS Guardian" e, no rodapé, o wordmark oficial registrado
+  "InterSystems® | DATA | INTELLIGENCE | ACTION".
+- Risco identificado: usar o wordmark oficial da InterSystems dentro de um
+  app de submissão de comunidade pode sugerir endosso oficial não
+  autorizado.
+- Decisão do proprietário: manter apenas a arte própria do produto (escudo +
+  "IRIS Guardian" + tagline + ícones), removendo o rodapé com o wordmark
+  oficial.
+- Implementado: `assets/iris-guardian-logo.png` (recorte de
+  `ImagemMatriz.png`, sem o rodapé InterSystems®) é o logo a usar nas
+  páginas da aplicação. `ImagemMatriz.png` original permanece no repositório
+  apenas como fonte/histórico, não deve ser usado em páginas públicas.
+- Paleta de marca extraída por amostragem de pixel da própria arte (não de
+  ativos da InterSystems) e registrada como tokens CSS em
+  `assets/css/iris-guardian-theme.css`: navy `#0a1965`/`#102f8b`, teal
+  `#0fd1c4`/`#01989c`, roxo de acento `#3a2fb5`. Tipografia usa pilha de
+  fontes de sistema, não a fonte proprietária da InterSystems.
+
 ## Pendências ainda abertas (não testadas nesta rodada)
 
 - IntegratedML: disponibilidade citada em fontes públicas para Community

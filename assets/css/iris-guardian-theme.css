@@ -1,0 +1,171 @@
+/*
+ * IRIS Guardian — design tokens e estilos base
+ *
+ * Paleta extraída por amostragem de pixel da arte oficial do produto
+ * (assets/iris-guardian-logo.png), não de nenhum arquivo de propriedade da
+ * InterSystems. Tipografia usa pilha de fontes de sistema (não a fonte
+ * proprietária da InterSystems) para manter o visual "inspirado em", sem
+ * reproduzir ativos de marca de terceiros.
+ */
+
+:root {
+  /* Paleta primária (extraída da logo) */
+  --ig-navy-900: #0a1965;
+  --ig-navy-700: #102f8b;
+  --ig-navy-500: #1e3fa8;
+  --ig-teal-700: #01989c;
+  --ig-teal-500: #0fd1c4;
+  --ig-teal-300: #6de9df;
+  --ig-purple-600: #3a2fb5;
+
+  /* Neutros */
+  --ig-white: #ffffff;
+  --ig-bg: #f6f8fb;
+  --ig-surface: #ffffff;
+  --ig-border: #e2e8f0;
+  --ig-text: #1a2035;
+  --ig-text-muted: #5b6478;
+
+  /* Estados (Monitor: saudável / degradado / indisponível / desconhecido) */
+  --ig-status-healthy: #0fae63;
+  --ig-status-degraded: #e0a000;
+  --ig-status-down: #d9364a;
+  --ig-status-unknown: #8892a6;
+
+  /* Tipografia */
+  --ig-font-sans:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+  --ig-font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  /* Espaçamento e forma */
+  --ig-radius: 10px;
+  --ig-radius-sm: 6px;
+  --ig-shadow: 0 1px 2px rgba(10, 25, 101, 0.06), 0 4px 16px rgba(10, 25, 101, 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ig-bg: #0b1024;
+    --ig-surface: #121936;
+    --ig-border: #232c4d;
+    --ig-text: #eef1fa;
+    --ig-text-muted: #9aa3bd;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--ig-bg);
+  color: var(--ig-text);
+  font-family: var(--ig-font-sans);
+  line-height: 1.5;
+}
+
+.ig-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(90deg, var(--ig-navy-900), var(--ig-navy-700));
+  color: var(--ig-white);
+}
+
+.ig-header img {
+  height: 32px;
+  width: auto;
+}
+
+.ig-header .ig-title {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.ig-header .ig-title strong {
+  color: var(--ig-teal-300);
+}
+
+.ig-nav {
+  display: flex;
+  gap: 1.25rem;
+  margin-left: auto;
+}
+
+.ig-nav a {
+  color: var(--ig-white);
+  opacity: 0.85;
+  text-decoration: none;
+  font-size: 0.9rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.ig-nav a:hover,
+.ig-nav a[aria-current="page"] {
+  opacity: 1;
+  border-bottom: 2px solid var(--ig-teal-500);
+}
+
+.ig-card {
+  background: var(--ig-surface);
+  border: 1px solid var(--ig-border);
+  border-radius: var(--ig-radius);
+  box-shadow: var(--ig-shadow);
+  padding: 1.25rem;
+}
+
+.ig-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.ig-badge::before {
+  content: "";
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.ig-badge--healthy { color: var(--ig-status-healthy); background: color-mix(in srgb, var(--ig-status-healthy) 12%, transparent); }
+.ig-badge--degraded { color: var(--ig-status-degraded); background: color-mix(in srgb, var(--ig-status-degraded) 14%, transparent); }
+.ig-badge--down { color: var(--ig-status-down); background: color-mix(in srgb, var(--ig-status-down) 12%, transparent); }
+.ig-badge--unknown { color: var(--ig-status-unknown); background: color-mix(in srgb, var(--ig-status-unknown) 14%, transparent); }
+
+.ig-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: var(--ig-radius-sm);
+  border: none;
+  background: var(--ig-navy-700);
+  color: var(--ig-white);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ig-btn:hover {
+  background: var(--ig-navy-900);
+}
+
+.ig-btn--accent {
+  background: var(--ig-teal-500);
+  color: var(--ig-navy-900);
+}
+
+.ig-btn--accent:hover {
+  background: var(--ig-teal-700);
+  color: var(--ig-white);
+}
