@@ -10,7 +10,7 @@ Parameter ADAPTER = "EnsLib.File.InboundAdapter";
 
 Property Adapter As EnsLib.File.InboundAdapter;
 
-Property TargetConfigName As %String(MAXLEN = 100) [ InitialExpression = "Guardian.Process.IncidentRouterProcess" ];
+Property TargetConfigName As Ens.DataType.ConfigName [ InitialExpression = "Guardian.Process.IncidentRouterProcess" ];
 
 Method OnProcessInput(pInput As %Stream.Object, pOutput As %RegisteredObject) As %Status
 {

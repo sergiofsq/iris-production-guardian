@@ -5,7 +5,7 @@
 Class Guardian.Process.IncidentRouterProcess Extends Ens.BusinessProcess
 {
 
-Property TargetConfigName As %String(MAXLEN = 100) [ InitialExpression = "Guardian.Operation.FileOutputOperation" ];
+Property TargetConfigName As Ens.DataType.ConfigName [ InitialExpression = "Guardian.Operation.FileOutputOperation" ];
 
 Method OnRequest(pRequest As Guardian.Messages.IncidentEvent, Output pResponse As %Persistent) As %Status
 {
