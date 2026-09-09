@@ -1,0 +1,14 @@
+{
+  "objectscript.conn": {
+    "active": true,
+    "host": "localhost",
+    "port": 52773,
+    "ns": "GUARDIAN",
+    "username": "guardian",
+    "https": false,
+    "server": "guardian-local"
+  },
+  "files.exclude": {
+    "**/.DS_Store": true
+  }
+}

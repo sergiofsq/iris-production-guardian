@@ -122,6 +122,35 @@
 - Artefatos de teste (`MLTest`, `MLTestModel`) removidos do namespace
   `USER` após a verificação; nenhum resíduo permanece no ambiente.
 
+## Bônus com evidência registrada — Fase 1 (09/09/2026)
+
+Detalhe completo em `02_FASE_1_PYPROD_INTEROPERABILITY.md`.
+
+### Service, Process e Operation (+1)
+
+- Prova: Production `Guardian.Production.GuardianProduction` no namespace
+  `GUARDIAN`, com um host de cada tipo (`Guardian.Service.FileIncidentService`,
+  `Guardian.Process.IncidentRouterProcess`, `Guardian.Operation.FileOutputOperation`).
+- Evidência: mensagem `Guardian.Messages.IncidentEvent` real (`INC-001`)
+  atravessou os três hosts, confirmada por (a) arquivo de saída
+  `out/incident_INC-001.txt` com campos `ProcessedBy`/`ProcessedAt`
+  preenchidos pelo Process, e (b) consulta SQL a `Ens.MessageHeader`
+  mostrando as três transições com `Status=9` (completo).
+- Estado: **confirmado**.
+
+### Adaptador em host (+1)
+
+- Prova: `Guardian.Service.FileIncidentService` usa
+  `EnsLib.File.InboundAdapter` (lê `/durable/guardian/in`, arquiva em
+  `/durable/guardian/archive`); `Guardian.Operation.FileOutputOperation` usa
+  `EnsLib.File.OutboundAdapter` (grava em `/durable/guardian/out`). Ambos
+  são adaptadores suportados nativamente pelo IRIS, sem dependência
+  externa.
+- Evidência: teste de ponta a ponta descrito acima — arquivo depositado em
+  `in/` gerou corretamente o arquivo correspondente em `out/` via os dois
+  adaptadores.
+- Estado: **confirmado**.
+
 ## Pendências ainda abertas (não testadas nesta rodada)
 
 - WSGI e PyProd: não são pendência técnica, são conflito estrutural com a

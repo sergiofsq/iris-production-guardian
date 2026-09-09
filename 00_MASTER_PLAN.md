@@ -22,7 +22,7 @@ exceção foi aplicada até aqui.
 | Fase | Arquivo | Status |
 |---|---|---|
 | Fase 0 — Setup e arquitetura | `01_FASE_0_SETUP_ARQUITETURA.md` | Em andamento — infraestrutura e VRs críticos fechados; bônus (multimodelo/híbrida/API pública) pendentes |
-| Fase 1 — Production COS / interoperabilidade | `02_FASE_1_PYPROD_INTEROPERABILITY.md` | Não iniciada |
+| Fase 1 — Production COS / interoperabilidade | `02_FASE_1_PYPROD_INTEROPERABILITY.md` | Em andamento — Service/Process/Operation com adaptador de arquivo, mensagem real testada ponta a ponta; falta cenário de falha e Business Rules |
 | Fase 2 — Production Monitor / telemetria | `03_FASE_2_PRODUCTION_MONITOR_WSGI_TELEMETRY.md` | Não iniciada |
 | Fase 3 — RAG Assistant | `04_FASE_3_RAG_ASSISTANT.md` | Não iniciada |
 | Fase 4 — AI Investigator / IntegratedML / API | `05_FASE_4_AI_INVESTIGATOR_INTEGRATEDML_API.md` | Não iniciada (IntegratedML já registrado como bloqueado — VR-003) |
@@ -38,7 +38,7 @@ desatualizado.
 | Datas | Trabalho e ponto de controle | Status em 09/09/2026 |
 |---|---|---|
 | 08–10/09 | Fase 0: ambiente, repositório, IRIS/contêineres, arquitetura, estrutura inicial do dashboard | Ambiente, VRs críticos e namespace/database prontos. Estrutura inicial do dashboard **ainda não iniciada**. |
-| 11–14/09 | Fase 1 + avanço da Fase 2: Production COS, hosts, simulação controlada, Monitor ligado a fontes reais | Não iniciada |
+| 11–14/09 | Fase 1 + avanço da Fase 2: Production COS, hosts, simulação controlada, Monitor ligado a fontes reais | Fase 1 iniciada adiantada (09/09): três hosts + adaptador provados. Simulação de falha e Fase 2 ainda não iniciadas |
 | 15–17/09 | Fases 3 e 4: corpus, embeddings, busca híbrida, Investigator | Não iniciada |
 | 18–19/09 | Fase 5: API/integrações, testes, instalação limpa, documentação | Não iniciada |
 | 20/09 | Demo completa, gravação, README, artigo, auditoria da matriz | Não iniciada |
@@ -63,6 +63,15 @@ presumir 23h59 (herdado do contexto, ainda aberto).
 - **09/09/2026** — Namespace `GUARDIAN` e database `GUARDIANDB` criados,
   interoperabilidade habilitada, verificados por comando. Usuário
   administrativo dedicado do projeto criado (credencial fora do Git).
+- **09/09/2026** — Ambiente de desenvolvimento configurado: VS Code +
+  extensão InterSystems ObjectScript, servidor nomeado `guardian-local`
+  (Basic auth, HTTP, porta 52773), compilação automática ao salvar em
+  `src/`. Ver `.vscode/settings.json`.
+- **09/09/2026** — Fase 1 iniciada: Production
+  `Guardian.Production.GuardianProduction` implementada (Service → Process
+  → Operation com adaptador `EnsLib.File`), mensagem real testada ponta a
+  ponta. Bônus "Service, Process e Operation" (+1) e "Adaptador em host"
+  (+1) confirmados com evidência. Ver `02_FASE_1_PYPROD_INTEROPERABILITY.md`.
 
 ## 5. Registro de pendências (VERIFY_REQUIRED)
 
