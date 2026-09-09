@@ -151,6 +151,21 @@ Detalhe completo em `02_FASE_1_PYPROD_INTEROPERABILITY.md`.
   adaptadores.
 - Estado: **confirmado**.
 
+### Falha controlada e recuperação (evidência do "Aceite proposto" do Monitor)
+
+- Prova: destino da Operation (`/durable/guardian/out`) tornado
+  indisponível (`chmod 555`); incidente disparado; erro real capturado em
+  `Ens.MessageHeader.ErrorStatus` (`ERROR #5005: Cannot open file...`,
+  `<Ens>ErrFailureTimeout` após 15s). Destino corrigido; tráfego novo
+  recupera automaticamente; mensagem afetada recuperada manualmente via
+  `Ens.MessageHeader.ResendMessage`.
+- Evidência: roteiro reproduzível e validado duas vezes do zero em
+  `docs/experiments/01_falha_recuperacao_producao.md`; detalhe completo em
+  `02_FASE_1_PYPROD_INTEROPERABILITY.md` §5.
+- Estado: **confirmado**. Cobre o "Aceite proposto" do Production Monitor
+  (contexto, seção 2): falha rastreável até o evento original, recuperação
+  visível (automática e manual).
+
 ## Pendências ainda abertas (não testadas nesta rodada)
 
 - WSGI e PyProd: não são pendência técnica, são conflito estrutural com a

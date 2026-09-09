@@ -22,7 +22,7 @@ exceção foi aplicada até aqui.
 | Fase | Arquivo | Status |
 |---|---|---|
 | Fase 0 — Setup e arquitetura | `01_FASE_0_SETUP_ARQUITETURA.md` | Em andamento — infraestrutura e VRs críticos fechados; bônus (multimodelo/híbrida/API pública) pendentes |
-| Fase 1 — Production COS / interoperabilidade | `02_FASE_1_PYPROD_INTEROPERABILITY.md` | Em andamento — Service/Process/Operation com adaptador de arquivo, mensagem real testada ponta a ponta; falta cenário de falha e Business Rules |
+| Fase 1 — Production COS / interoperabilidade | `02_FASE_1_PYPROD_INTEROPERABILITY.md` | Objetivo principal cumprido — Service/Process/Operation com adaptador de arquivo, mensagem real ponta a ponta, cenário de falha/recuperação testado e reproduzível (`docs/experiments/01_falha_recuperacao_producao.md`). Falta apenas Business Rules (bônus opcional) |
 | Fase 2 — Production Monitor / telemetria | `03_FASE_2_PRODUCTION_MONITOR_WSGI_TELEMETRY.md` | Não iniciada |
 | Fase 3 — RAG Assistant | `04_FASE_3_RAG_ASSISTANT.md` | Não iniciada |
 | Fase 4 — AI Investigator / IntegratedML / API | `05_FASE_4_AI_INVESTIGATOR_INTEGRATEDML_API.md` | Não iniciada (IntegratedML já registrado como bloqueado — VR-003) |
@@ -72,6 +72,18 @@ presumir 23h59 (herdado do contexto, ainda aberto).
   → Operation com adaptador `EnsLib.File`), mensagem real testada ponta a
   ponta. Bônus "Service, Process e Operation" (+1) e "Adaptador em host"
   (+1) confirmados com evidência. Ver `02_FASE_1_PYPROD_INTEROPERABILITY.md`.
+- **09/09/2026** — Corrigido o tipo de `TargetConfigName` para
+  `Ens.DataType.ConfigName` (era `%String`) nos hosts Service e Process —
+  necessário para o editor gráfico de Interoperability desenhar as
+  conexões entre hosts.
+- **09/09/2026** — Cenário de falha controlada e recuperação testado e
+  validado duas vezes do zero (script reproduzível em
+  `docs/experiments/01_falha_recuperacao_producao.md`): falha real
+  (`ERROR #5005`), recuperação automática para tráfego novo, recuperação
+  manual da mensagem afetada via `Ens.MessageHeader.ResendMessage`.
+- **09/09/2026** — Iniciada a organização dos arquivos de entrega:
+  `docs/experiments/` para roteiros reproduzíveis (uso na gravação do
+  vídeo do concurso) e `README.md` (inglês, público) na raiz.
 
 ## 5. Registro de pendências (VERIFY_REQUIRED)
 
@@ -92,12 +104,32 @@ Fechar cada item apenas com evidência observada, registrando no scorecard.
 ## 6. Definition of Done (referência)
 
 Checklist completo em `IRIS-Production-Guardian-CONVERSATION-CONTEXT.md`,
-seção 11. Nenhum item foi concluído ainda — a aplicação em si não existe
-além de assets visuais e ambiente/infra. Reavaliar esta seção ao final de
+seção 11. Primeiro item com progresso real: a Production COS (Service →
+Process → Operation) existe, roda, e tem cenário de falha/recuperação
+testado e reproduzível. Os três módulos do MVP (Monitor, Investigator, RAG)
+ainda não existem como interface própria. Reavaliar esta seção ao final de
 cada fase.
 
-## 7. Próximo passo imediato
+## 7. Estrutura de arquivos de entrega
 
-Iniciar a **Fase 1**: primeira classe de Production COS no namespace
-`GUARDIAN`, com os três tipos de host (Service → Process → Operation) e uma
-mensagem real atravessando os três, antes de qualquer bônus adicional.
+Organização adotada para a submissão (Open Exchange + artigo na
+comunidade), consolidada em 09/09/2026:
+
+| Caminho | Conteúdo | Público/interno |
+|---|---|---|
+| `README.md` | Visão geral do projeto, instalação, como reproduzir — em inglês | Público (Open Exchange) |
+| `00_MASTER_PLAN.md` … `07_SCORECARD_EVIDENCIAS.md` | Planejamento, decisões e evidências por fase — em português | Interno (contexto de desenvolvimento, pode acompanhar o repo como transparência do processo) |
+| `docs/experiments/` | Roteiros reproduzíveis passo a passo de cada experimento controlado (falha/recuperação, futuros: carga, RAG, IntegratedML) — em português, uso direto na gravação do vídeo | Interno, mas referenciável no artigo |
+| `src/Guardian/` | Código-fonte COS (classes da Production, mensagens, hosts) | Público |
+| `assets/` | Identidade visual (logo, tokens CSS) | Público |
+| `Estudar.txt`, `Anotações para Usuário.txt`, `Imagens/` | Material pessoal de aprendizado do proprietário | **Não** entra na entrega — manter fora do commit/publicação |
+
+Pendente: artigo da comunidade (português, com tags exigidas — ver
+contexto seção 5), vídeo explicativo, e o próprio conteúdo do `README.md`
+(criado nesta sessão, ver `04_...`/commits).
+
+## 8. Próximo passo imediato
+
+Fase 2: expor o estado real da Production (hosts, filas, mensagens) através
+de uma interface própria (Production Monitor), reaproveitando as consultas
+a `Ens.MessageHeader`/`Ens_Config.Item` já validadas manualmente na Fase 1.

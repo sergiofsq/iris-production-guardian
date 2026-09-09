@@ -85,19 +85,52 @@ primeira versão usava `%RegisteredObject`, que não é subclasse de
 sucesso — confirmado via `%Dictionary.CompiledClass.%ExistsId`, não apenas
 pela ausência de mensagem de erro.
 
-## 5. Pendências desta fase (não feitas ainda)
+## 5. Cenário de falha controlada e recuperação (09/09/2026) — evidência real
 
-- **Cenário de falha controlada**: ainda não testamos tornar `out/`
-  indisponível (ex.: sem permissão de escrita) para observar o
-  comportamento de erro/retry da Operation — necessário para o Monitor
-  (Fase 2) diferenciar saudável/degradado/indisponível.
+Roteiro completo e reproduzível em
+`docs/experiments/01_falha_recuperacao_producao.md` (executado do zero duas
+vezes nesta sessão, com resultado idêntico — não é um exemplo hipotético).
+
+Resumo do que foi observado:
+
+1. Destino quebrado (`chmod 555` em `/durable/guardian/out`, removendo
+   escrita de `irisowner`).
+2. Incidente `INC-003` disparado. Após ~15s (`FailureTimeout` padrão do
+   framework, confirmado em `Ens.BusinessOperation||FailureTimeout` =
+   `15`, `RetryInterval` = `5`), a Operation registra em
+   `Ens.MessageHeader.ErrorStatus`:
+   ```
+   <Ens>ErrFailureTimeout ... ERROR #5005: Cannot open file
+   '/durable/guardian/out/incident_INC-003.txt'
+   ```
+   Nenhum arquivo de saída é gerado — a falha é real (erro de sistema
+   operacional), não fingida na interface.
+3. Destino corrigido (`chmod 755`).
+4. Um incidente **novo** (`INC-004`) flui automaticamente com sucesso —
+   confirma recuperação automática para tráfego novo, sem reiniciar a
+   Production.
+5. O incidente que falhou (`INC-003`) **não** é reentregue sozinho — o
+   `FailureTimeout` já tinha expirado antes do conserto, então aquela
+   tentativa específica ficou marcada como falha definitiva (comportamento
+   documentado do framework `Ens.BusinessOperation`, não limitação do
+   código do projeto). Reenviado manualmente via
+   `##class(Ens.MessageHeader).ResendMessage(<ID>)` — sucesso confirmado
+   (arquivo de saída gerado).
+
+Isso cobre diretamente o "Aceite proposto" do Production Monitor (contexto,
+seção 2): falha altera indicadores rastreáveis até o evento original, e a
+recuperação (automática para tráfego novo, manual para a mensagem afetada)
+é visível — nada foi escondido ou fingido como sucesso.
+
+## 6. Pendências desta fase (não feitas ainda)
+
 - **Business Rules** (bônus +2): roteamento ainda é código fixo, não usa
   `Ens.Rule.Definition`.
 - Nenhuma mensagem foi gerada com **carga real de "Production" observável
   no Monitor** ainda — isso é a Fase 2.
 
-## 6. Próximo passo
+## 7. Próximo passo
 
-Testar o cenário de falha (destino indisponível) e começar a Fase 2:
-coletar o estado real dos hosts/filas via classes `Ens.*` para alimentar o
-Production Monitor.
+Começar a Fase 2: coletar o estado real dos hosts/filas via classes `Ens.*`
+(o que já exploramos manualmente aqui — `Ens.MessageHeader`,
+`Ens_Config.Item`) para alimentar o Production Monitor.
