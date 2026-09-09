@@ -96,20 +96,87 @@ não de bytes UTF-8) — confirma que a string está armazenada corretamente
 internamente; o problema é só do charset do terminal usado para depurar,
 não da aplicação. Não precisou de correção no código.
 
-## 4. Próximos passos desta fase
+## 3.2 Esquema de dados, chunking, ingestão e consulta (09/09/2026)
 
-1. Cliente COS (`Guardian.RAG.GeminiClient`) encapsulando os dois
-   endpoints via `%Net.HttpRequest`, lendo a chave de
-   `Ens.Config.Credentials` — nenhuma chamada direta espalhada pelo
-   código.
-2. Modelo de dados: tabela de documentos (origem, versão, data de coleta)
-   e tabela de fragmentos (`VECTOR(DOUBLE, 768)`, texto, referência ao
-   documento).
-3. Estratégia de chunking — a definir e justificar com um teste
-   comparativo pequeno (critério do concurso).
-4. Ingestão de um corpus inicial pequeno (documentação real do projeto,
-   já autorizada — ex. os próprios `.md` do projeto ou documentação
-   pública do IRIS).
-5. Recuperação (`VECTOR_COSINE`) + geração com citação da fonte +
-   abstenção quando não houver suporte.
-6. Página de consulta (mesmo padrão do Monitor: HTML renderizado no COS).
+- **Esquema**: `Guardian_RAG.Document` (Source, Title, Version,
+  CollectedAt) e `Guardian_RAG.Chunk` (DocumentId, ChunkIndex, ChunkText,
+  `Embedding VECTOR(DOUBLE, 768)`, EmbeddingModel, CreatedAt) — criadas
+  via DDL direto (`Guardian.RAG.Schema`), mesma abordagem validada no
+  VR-001/002, não via `Property` de classe persistente (evita sintaxe de
+  tipo de vetor em ObjectScript não verificada).
+- **Chunking** (`Guardian.RAG.Ingestion`): agrupamento por parágrafo
+  (separador `\n\n`) até 800 caracteres, com parágrafos maiores que isso
+  quebrados em janelas deslizantes com 150 caracteres de sobreposição.
+  Justificativa: parágrafos preservam unidades de sentido; 800 caracteres
+  equilibra contexto suficiente por fragmento com precisão de recuperação
+  para os documentos deste projeto (Markdown técnico, parágrafos curtos a
+  médios); sobreposição reduz perda de informação em cortes no meio de
+  uma explicação.
+- **Corpus inicial**: os próprios documentos de fase do projeto
+  (`00_MASTER_PLAN.md` a `04_FASE_3_RAG_ASSISTANT.md`) — conteúdo próprio,
+  já autorizado, e diretamente relevante ao domínio ("como o IRIS
+  Production Guardian funciona"). 79 fragmentos gerados a partir de 5
+  documentos.
+- **Consulta** (`Guardian.RAG.Query`): embedding da pergunta, `TOP 5` por
+  `VECTOR_COSINE`, prompt instruindo o modelo a responder só com o
+  contexto fornecido e citar a fonte. Abstenção se a melhor similaridade
+  ficar abaixo de `MinSimilarity`.
+- **Calibração do limiar de abstenção**: iniciado em 0.5, ajustado para
+  **0.58** após dois pontos reais observados — pergunta relevante
+  ("por que o IntegratedML não funciona") = 0.653; pergunta irrelevante
+  ("receita de bolo de chocolate") = 0.518 (passaria do filtro em 0.5).
+  Ainda uma heurística com poucos pontos, não estatisticamente validada —
+  calibração melhor fica como trabalho futuro com um conjunto de avaliação
+  maior.
+- **Página**: `Guardian.UI.RAGPage` (`/csp/guardian/Guardian.UI.RAGPage.cls`)
+  — formulário simples (GET, sem JS), a lógica toda em COS.
+
+### Erros reais encontrados e corrigidos
+
+1. `%SQL.Statement` não tem método `%GetLastIdentity()` (não existe na
+   API real). `LAST_IDENTITY()` via SQL também não funciona quando
+   chamado num `%SQL.Statement` **separado** do INSERT (testado e
+   confirmado vazio). Corrigido usando `%ROWID` do próprio resultset do
+   INSERT, que funciona de forma confiável.
+2. `$Select($IsObject($Get(tResp.error)):...)` — `$Get` não se aplica a
+   propriedade de `%DynamicObject` (erro `Class '%Library.DynamicObject'
+   does not support MultiDimensional operations`). Corrigido usando
+   `tResp.%Get("error")`, a forma correta de acessar uma chave que pode
+   não existir num objeto dinâmico.
+3. **Falso alarme de encoding, registrado para não repetir o
+   investigativo**: depurar a API via `iris session` (terminal Docker sem
+   TTY real) mostra acentos corrompidos como espaços ou `�`/`Ã§`. Um
+   hexdump da resposta HTTP real (via `curl`, bytes crus) confirmou UTF-8
+   perfeitamente válido de ponta a ponta — o problema era só a exibição
+   do terminal de depuração, não a aplicação. **Não presumir bug de
+   encoding a partir de saída de terminal — sempre conferir os bytes
+   reais (hexdump) ou o `$Length`/códigos de caractere antes de alterar
+   código por causa disso.**
+4. **Resiliência a indisponibilidade do modelo**: a API do Gemini
+   retornou um `503 UNAVAILABLE` real durante os testes ("high demand").
+   Sem tratamento, isso derrubava a página com o erro genérico do CSP.
+   Adicionado `Try/Catch` em `Guardian.UI.RAGPage` para mostrar uma
+   mensagem clara em vez de travar — consistente com o requisito do MVP
+   de que indisponibilidade do modelo não deve impedir o uso da
+   aplicação.
+
+## 4. Estado atual e pendências
+
+**Concluído e testado (09/09/2026):** cliente Gemini, esquema de dados,
+chunking, ingestão do corpus inicial (79 fragmentos / 5 documentos),
+recuperação vetorial, geração com citação, abstenção calibrada, página de
+consulta, resiliência a falha do modelo. Testes reais incluíram uma
+pergunta relevante (respondida corretamente e citada), uma irrelevante
+(abstenção correta) e uma indisponibilidade real da API (503, tratada sem
+derrubar a página).
+
+**Pendente:**
+- Busca híbrida (lexical + vetorial) — bônus +3, ainda não implementado.
+- Comparação formal de estratégias de chunking (o critério do concurso
+  pede "justificativa", que já temos por raciocínio; um teste comparativo
+  A/B com outra estratégia fortaleceria a evidência).
+- Conjunto de avaliação maior para calibrar `MinSimilarity` com mais
+  rigor.
+- Ingestão de documentação além dos próprios arquivos de fase do projeto
+  (ex. documentação pública do IRIS), se fizer sentido para o vídeo/artigo.
+- Validação visual da página pelo proprietário.

@@ -166,6 +166,42 @@ Detalhe completo em `02_FASE_1_PYPROD_INTEROPERABILITY.md`.
   (contexto, seção 2): falha rastreável até o evento original, recuperação
   visível (automática e manual).
 
+## RAG Assistant (09/09/2026)
+
+Detalhe completo em `04_FASE_3_RAG_ASSISTANT.md`.
+
+### RAG funcional (item principal, 5 pontos)
+
+- Prova: ingestão (`Guardian.RAG.Ingestion`, 79 fragmentos de 5
+  documentos reais do projeto), recuperação vetorial
+  (`Guardian.RAG.Query`, `VECTOR_COSINE` + `TOP 5`), geração com citação
+  de fonte (`Guardian.RAG.GeminiClient`), abstenção quando a similaridade
+  é baixa, página de consulta (`Guardian.UI.RAGPage`).
+- Evidência: pergunta relevante ("por que o IntegratedML não funciona")
+  respondida corretamente com citação da fonte certa (similaridade 0.653);
+  pergunta irrelevante ("receita de bolo de chocolate") corretamente
+  abstida (similaridade 0.518, abaixo do limiar de 0.58); indisponibilidade
+  real da API (Gemini retornou `503`) tratada sem derrubar a aplicação.
+- Estado: **confirmado**.
+
+### Justificativa de chunking/embedding (+2)
+
+- Prova: dimensão do embedding (768, truncada do default 3072 via
+  Matryoshka representation do Gemini) e estratégia de chunking
+  (parágrafo até 800 caracteres, sobreposição de 150) documentadas com
+  raciocínio explícito em `04_FASE_3_RAG_ASSISTANT.md` seções 3 e 3.2.
+- Estado: **confirmado** (justificativa por raciocínio registrada; um
+  teste comparativo A/B formal entre estratégias fica como reforço
+  futuro, não bloqueia o critério).
+
+### Clareza do pipeline RAG (+2)
+
+- Prova: pipeline documentado ponta a ponta (ingestão → chunking →
+  embedding → armazenamento vetorial → recuperação → geração → citação →
+  abstenção), com diagrama textual e cada etapa testada individualmente
+  com evidência real (não apenas descrita).
+- Estado: **confirmado**.
+
 ## Pendências ainda abertas (não testadas nesta rodada)
 
 - WSGI e PyProd: não são pendência técnica, são conflito estrutural com a
@@ -174,4 +210,5 @@ Detalhe completo em `02_FASE_1_PYPROD_INTEROPERABILITY.md`.
   registrada: não perseguir esses dois bônus, manter tudo em COS.
 - Multimodelo, busca híbrida (lexical + vetorial), API pública: ainda não
   testados; dependem da arquitetura de classes que será definida nas
-  próximas fases.
+  próximas fases. Busca híbrida especificamente teria ligação direta com
+  o RAG já implementado — candidato natural a próximo reforço.

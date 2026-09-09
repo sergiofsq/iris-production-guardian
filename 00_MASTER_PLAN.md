@@ -24,7 +24,7 @@ exceção foi aplicada até aqui.
 | Fase 0 — Setup e arquitetura | `01_FASE_0_SETUP_ARQUITETURA.md` | Em andamento — infraestrutura e VRs críticos fechados; bônus (multimodelo/híbrida/API pública) pendentes |
 | Fase 1 — Production COS / interoperabilidade | `02_FASE_1_PYPROD_INTEROPERABILITY.md` | Objetivo principal cumprido — Service/Process/Operation com adaptador de arquivo, mensagem real ponta a ponta, cenário de falha/recuperação testado e reproduzível (`docs/experiments/01_falha_recuperacao_producao.md`). Falta apenas Business Rules (bônus opcional) |
 | Fase 2 — Production Monitor / telemetria | `03_FASE_2_PRODUCTION_MONITOR_WSGI_TELEMETRY.md` | Primeira versão concluída e validada visualmente pelo proprietário. Série temporal persistida fica como melhoria futura |
-| Fase 3 — RAG Assistant | `04_FASE_3_RAG_ASSISTANT.md` | Iniciada — provedor de IA decidido (Gemini), cliente COS (`Guardian.RAG.GeminiClient`) implementado e testado ao vivo (embeddings + geração). Falta ingestão, armazenamento vetorial e recuperação |
+| Fase 3 — RAG Assistant | `04_FASE_3_RAG_ASSISTANT.md` | Primeira versão completa e testada: ingestão, chunking, armazenamento vetorial, recuperação, geração com citação, abstenção calibrada, página de consulta. Falta busca híbrida (bônus) e validação visual |
 | Fase 4 — AI Investigator / IntegratedML / API | `05_FASE_4_AI_INVESTIGATOR_INTEGRATEDML_API.md` | Não iniciada (IntegratedML já registrado como bloqueado — VR-003) |
 | Fase 5 — Hardening, testes, demo | `06_FASE_5_HARDENING_TESTS_DEMO.md` | Não iniciada |
 | Scorecard de evidências | `07_SCORECARD_EVIDENCIAS.md` | Ativo — atualizado a cada VR fechado |
@@ -149,8 +149,21 @@ contexto seção 5), vídeo explicativo, e o próprio conteúdo do `README.md`
   saída (`PublicHTTPS`) criada para HTTPS a hosts públicos. Ver
   `04_FASE_3_RAG_ASSISTANT.md`.
 
+- **09/09/2026** — Fase 3 (RAG Assistant) primeira versão completa:
+  esquema `Guardian_RAG.Document`/`Chunk` (VECTOR 768-dim, DDL direto),
+  chunking por parágrafo com sobreposição, corpus inicial de 79
+  fragmentos (docs do próprio projeto), recuperação `VECTOR_COSINE` + top
+  5, geração com citação de fonte, abstenção calibrada em 0.58 (dois
+  pontos reais observados), página `Guardian.UI.RAGPage`. Erros reais
+  corrigidos: `%SQL.Statement` sem `%GetLastIdentity` (usar `%ROWID`),
+  acesso incorreto a propriedade de `%DynamicObject` via `$Get` (usar
+  `%Get`), falso alarme de encoding (bug era só exibição de terminal,
+  confirmado por hexdump), e tratamento de indisponibilidade real da API
+  (503) sem derrubar a página. Ver `04_FASE_3_RAG_ASSISTANT.md`.
+
 ## 8. Próximo passo imediato
 
-Fase 3: modelo de dados (tabela de documentos + fragmentos com coluna
-`VECTOR`), estratégia de chunking justificada, e ingestão de um corpus
-inicial pequeno.
+Validação visual da página do RAG Assistant pelo proprietário
+(`http://localhost:52773/csp/guardian/Guardian.UI.RAGPage.cls`). Depois,
+decidir entre reforçar o RAG (busca híbrida, mais corpus) ou avançar para
+a Fase 4 (AI Incident Investigator).

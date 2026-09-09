@@ -62,7 +62,8 @@ ClassMethod Embed(pText As %String, pDimension As %Integer = 768) As %DynamicArr
 	Set tResp = {}.%FromJSON(tRespText)
 
 	If tHttp.HttpResponse.StatusCode '= 200 {
-		Set tMsg = $Select($IsObject($Get(tResp.error)):tResp.error.message, 1:tRespText)
+		Set tErrObj = tResp.%Get("error")
+		Set tMsg = $Select($IsObject(tErrObj):tErrObj.message, 1:tRespText)
 		Throw ##class(%Exception.General).%New("Gemini embed HTTP "_tHttp.HttpResponse.StatusCode_": "_tMsg)
 	}
 
@@ -98,7 +99,8 @@ ClassMethod Generate(pPrompt As %String) As %String
 	Set tResp = {}.%FromJSON(tRespText)
 
 	If tHttp.HttpResponse.StatusCode '= 200 {
-		Set tMsg = $Select($IsObject($Get(tResp.error)):tResp.error.message, 1:tRespText)
+		Set tErrObj = tResp.%Get("error")
+		Set tMsg = $Select($IsObject(tErrObj):tErrObj.message, 1:tRespText)
 		Throw ##class(%Exception.General).%New("Gemini generate HTTP "_tHttp.HttpResponse.StatusCode_": "_tMsg)
 	}
 
