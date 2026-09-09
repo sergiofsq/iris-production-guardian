@@ -1,0 +1,10 @@
+{
+  "name": "iris-production-guardian",
+  "version": "1.0.0",
+  "private": true,
+  "description": "IRIS Production Guardian - frontend dev tooling (linting/formatting/dev server) for the HTML/CSS/JS web interface. Business logic and persistence live in InterSystems IRIS/COS.",
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

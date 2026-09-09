@@ -1,0 +1,94 @@
+# Master Plan — IRIS Production Guardian
+
+> Documento de acompanhamento vivo: fases, dependências, decisões e
+> cronograma. Fonte de verdade para escopo e premissas é
+> `IRIS-Production-Guardian-CONVERSATION-CONTEXT.md`; este arquivo apenas
+> rastreia progresso e aponta para onde cada decisão/evidência está
+> registrada. Atualizar a cada incremento relevante, não retroativamente.
+
+## 1. Escopo e prioridades (resumo)
+
+MVP com três módulos — **Production Monitor**, **AI Incident Investigator**,
+**RAG Assistant** — sobre InterSystems IRIS, com COS/ObjectScript como
+linguagem principal e persistência exclusivamente em IRIS. Detalhe completo
+em `IRIS-Production-Guardian-CONVERSATION-CONTEXT.md`, seções 1–2.
+
+Premissa tecnológica obrigatória (contexto, seção 1.1): COS primeiro,
+IRIS como único banco, Python só por limitação comprovada de COS. Nenhuma
+exceção foi aplicada até aqui.
+
+## 2. Fases e arquivos associados
+
+| Fase | Arquivo | Status |
+|---|---|---|
+| Fase 0 — Setup e arquitetura | `01_FASE_0_SETUP_ARQUITETURA.md` | Em andamento — infraestrutura e VRs críticos fechados; bônus (multimodelo/híbrida/API pública) pendentes |
+| Fase 1 — Production COS / interoperabilidade | `02_FASE_1_PYPROD_INTEROPERABILITY.md` | Não iniciada |
+| Fase 2 — Production Monitor / telemetria | `03_FASE_2_PRODUCTION_MONITOR_WSGI_TELEMETRY.md` | Não iniciada |
+| Fase 3 — RAG Assistant | `04_FASE_3_RAG_ASSISTANT.md` | Não iniciada |
+| Fase 4 — AI Investigator / IntegratedML / API | `05_FASE_4_AI_INVESTIGATOR_INTEGRATEDML_API.md` | Não iniciada (IntegratedML já registrado como bloqueado — VR-003) |
+| Fase 5 — Hardening, testes, demo | `06_FASE_5_HARDENING_TESTS_DEMO.md` | Não iniciada |
+| Scorecard de evidências | `07_SCORECARD_EVIDENCIAS.md` | Ativo — atualizado a cada VR fechado |
+
+Os arquivos de fase ainda não criados serão adicionados quando a fase
+correspondente começar, não antes — evita planejamento especulativo
+desatualizado.
+
+## 3. Cronograma (até 21/09/2026)
+
+| Datas | Trabalho e ponto de controle | Status em 09/09/2026 |
+|---|---|---|
+| 08–10/09 | Fase 0: ambiente, repositório, IRIS/contêineres, arquitetura, estrutura inicial do dashboard | Ambiente, VRs críticos e namespace/database prontos. Estrutura inicial do dashboard **ainda não iniciada**. |
+| 11–14/09 | Fase 1 + avanço da Fase 2: Production COS, hosts, simulação controlada, Monitor ligado a fontes reais | Não iniciada |
+| 15–17/09 | Fases 3 e 4: corpus, embeddings, busca híbrida, Investigator | Não iniciada |
+| 18–19/09 | Fase 5: API/integrações, testes, instalação limpa, documentação | Não iniciada |
+| 20/09 | Demo completa, gravação, README, artigo, auditoria da matriz | Não iniciada |
+| 21/09 | Conferência final e submissão | Não iniciada |
+
+`VERIFY_REQUIRED`: horário/fuso oficial de corte da submissão — não
+presumir 23h59 (herdado do contexto, ainda aberto).
+
+## 4. Decisões registradas (cronológico)
+
+- **09/09/2026** — Ambiente Docker/IRIS validado (Community 2026.2 ARM64);
+  achado: imagem `iris-community-arm64` sem multi-arch está abandonada, não
+  usar. Ver `01_FASE_0_SETUP_ARQUITETURA.md` §1–2.
+- **09/09/2026** — VR-001 (Vector Search) e VR-002 (Foreign Table)
+  confirmados, sem restrição de licença na Community Edition.
+- **09/09/2026** — Identidade visual própria definida: logo sem wordmark
+  InterSystems, paleta em `assets/css/iris-guardian-theme.css`.
+- **09/09/2026** — WSGI e PyProd descartados como bônus a perseguir
+  (conflito estrutural com premissa COS-first, não pendência técnica).
+- **09/09/2026** — VR-003 (IntegratedML/AutoML) confirmado bloqueado nesta
+  imagem; bônus (+3) marcado fora do escopo do MVP.
+- **09/09/2026** — Namespace `GUARDIAN` e database `GUARDIANDB` criados,
+  interoperabilidade habilitada, verificados por comando. Usuário
+  administrativo dedicado do projeto criado (credencial fora do Git).
+
+## 5. Registro de pendências (VERIFY_REQUIRED)
+
+Registro único em `07_SCORECARD_EVIDENCIAS.md`. Resumo do que segue aberto:
+
+- Interfaces de métricas/filas/logs para o Monitor.
+- Business Rules (roteamento real).
+- Multimodelo (formas reais de acesso por tipo).
+- Pesquisa híbrida (lexical + vetorial).
+- Acesso a API pública adequada.
+- Provedor/modelo de IA para embeddings e geração (decisão do proprietário:
+  custo, acesso, dados).
+- Horário/fuso limite oficial da submissão.
+- Interpretação de teto de bônus/multimodelo pela organização do concurso.
+
+Fechar cada item apenas com evidência observada, registrando no scorecard.
+
+## 6. Definition of Done (referência)
+
+Checklist completo em `IRIS-Production-Guardian-CONVERSATION-CONTEXT.md`,
+seção 11. Nenhum item foi concluído ainda — a aplicação em si não existe
+além de assets visuais e ambiente/infra. Reavaliar esta seção ao final de
+cada fase.
+
+## 7. Próximo passo imediato
+
+Iniciar a **Fase 1**: primeira classe de Production COS no namespace
+`GUARDIAN`, com os três tipos de host (Service → Process → Operation) e uma
+mensagem real atravessando os três, antes de qualquer bônus adicional.

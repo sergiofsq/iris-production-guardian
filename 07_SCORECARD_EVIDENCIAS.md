@@ -82,11 +82,48 @@
   `#0fd1c4`/`#01989c`, roxo de acento `#3a2fb5`. Tipografia usa pilha de
   fontes de sistema, não a fonte proprietária da InterSystems.
 
+## VR-003 — IntegratedML (provider AutoML) na Community Edition
+
+- Questão: `CREATE MODEL` / `TRAIN MODEL` / `PREDICT` (IntegratedML,
+  provider padrão `%AutoML`) funcionam nesta instância sem licença
+  adicional?
+- Evidência necessária: teste mínimo no ambiente real, com dados sintéticos
+  rotulados.
+- Como verificado: via `%SQL.Statement` no namespace `USER`, tabela
+  `MLTest` (32 linhas sintéticas, 2 features numéricas + `label` A/B):
+  - `CREATE TABLE MLTest (...)` → executado com sucesso.
+  - `DROP MODEL IF EXISTS MLTestModel` / `CREATE MODEL MLTestModel
+    PREDICTING (label) FROM MLTest` → `%SQLCODE 0`, sucesso (camada
+    SQL/COS do IntegratedML funciona).
+  - `TRAIN MODEL MLTestModel` → `%SQLCODE -186`, mensagem `%ML Provider
+    'AutoML' is not available on this instance`.
+  - Causa raiz confirmada (não presumida): a classe `%ML.AutoML.Provider`
+    (`%ImportPackage`) exige os módulos Python `iris_automl.automl`,
+    `numpy` e `pandas` via Embedded Python (`%SYS.Python`). Dentro do
+    container, `python3 -c "import iris_automl"` e `import sklearn` /
+    `import pandas` falham com `ModuleNotFoundError`. Busca em todo o
+    filesystem (`find / -iname "*automl*"`) não encontrou nenhum arquivo,
+    wheel ou requirements relacionado ao AutoML embarcado na imagem
+    `intersystems/iris-community:latest-cd` (ARM64, 2026.2). `pip index
+    versions iris_automl` / `pip download iris_automl` confirmam que o
+    pacote não está no PyPI público — é proprietário da InterSystems e não
+    é distribuído com esta imagem/edição.
+- Estado: **confirmado — bloqueado neste ambiente**. Não é restrição de
+  licença SQL (a criação do modelo é aceita); é ausência do motor de
+  treino Python `iris_automl` na imagem Community Edition ARM64 usada.
+- Impacto: bônus IntegratedML (+3) não é viável com o container atual sem
+  uma fonte oficial do pacote `iris_automl` (não localizada publicamente).
+  Providers alternativos (`%H2O` exige servidor H2O externo — violaria a
+  premissa de não introduzir dependências externas; `%PMML` importa um
+  modelo já treinado fora do IRIS, não treina a partir dos dados do
+  projeto) não atendem ao objetivo de treinar/prever dentro do IRIS sem
+  dependência externa. Registrar este bônus como **fora do escopo do MVP**
+  até haver decisão do proprietário ou fonte oficial do pacote.
+- Artefatos de teste (`MLTest`, `MLTestModel`) removidos do namespace
+  `USER` após a verificação; nenhum resíduo permanece no ambiente.
+
 ## Pendências ainda abertas (não testadas nesta rodada)
 
-- IntegratedML: disponibilidade citada em fontes públicas para Community
-  Edition (até 20 cores), mas ainda sem teste mínimo (`CREATE MODEL` /
-  `TRAIN MODEL` / `PREDICT`) neste container. Estado: aberto.
 - WSGI e PyProd: não são pendência técnica, são conflito estrutural com a
   premissa "COS first" (seção 1.1 do contexto) — WSGI é por definição uma
   interface Python; PyProd hospeda hosts em Python. Decisão do proprietário
