@@ -24,7 +24,7 @@ exceção foi aplicada até aqui.
 | Fase 0 — Setup e arquitetura | `01_FASE_0_SETUP_ARQUITETURA.md` | Em andamento — infraestrutura e VRs críticos fechados; bônus (multimodelo/híbrida/API pública) pendentes |
 | Fase 1 — Production COS / interoperabilidade | `02_FASE_1_PYPROD_INTEROPERABILITY.md` | Objetivo principal cumprido — Service/Process/Operation com adaptador de arquivo, mensagem real ponta a ponta, cenário de falha/recuperação testado e reproduzível (`docs/experiments/01_falha_recuperacao_producao.md`). Falta apenas Business Rules (bônus opcional) |
 | Fase 2 — Production Monitor / telemetria | `03_FASE_2_PRODUCTION_MONITOR_WSGI_TELEMETRY.md` | Primeira versão concluída e validada visualmente pelo proprietário. Série temporal persistida fica como melhoria futura |
-| Fase 3 — RAG Assistant | `04_FASE_3_RAG_ASSISTANT.md` | Não iniciada |
+| Fase 3 — RAG Assistant | `04_FASE_3_RAG_ASSISTANT.md` | Iniciada — provedor de IA decidido (Gemini), cliente COS (`Guardian.RAG.GeminiClient`) implementado e testado ao vivo (embeddings + geração). Falta ingestão, armazenamento vetorial e recuperação |
 | Fase 4 — AI Investigator / IntegratedML / API | `05_FASE_4_AI_INVESTIGATOR_INTEGRATEDML_API.md` | Não iniciada (IntegratedML já registrado como bloqueado — VR-003) |
 | Fase 5 — Hardening, testes, demo | `06_FASE_5_HARDENING_TESTS_DEMO.md` | Não iniciada |
 | Scorecard de evidências | `07_SCORECARD_EVIDENCIAS.md` | Ativo — atualizado a cada VR fechado |
@@ -105,8 +105,9 @@ Registro único em `07_SCORECARD_EVIDENCIAS.md`. Resumo do que segue aberto:
 - Multimodelo (formas reais de acesso por tipo).
 - Pesquisa híbrida (lexical + vetorial).
 - Acesso a API pública adequada.
-- Provedor/modelo de IA para embeddings e geração (decisão do proprietário:
-  custo, acesso, dados).
+- ~~Provedor/modelo de IA para embeddings e geração~~ — **fechado
+  09/09/2026**: Google Gemini API (tier gratuito), ver
+  `04_FASE_3_RAG_ASSISTANT.md`.
 - Horário/fuso limite oficial da submissão.
 - Interpretação de teto de bônus/multimodelo pela organização do concurso.
 
@@ -139,10 +140,17 @@ Pendente: artigo da comunidade (português, com tags exigidas — ver
 contexto seção 5), vídeo explicativo, e o próprio conteúdo do `README.md`
 (criado nesta sessão, ver `04_...`/commits).
 
+- **09/09/2026** — Fase 3 iniciada: decisão de provedor de IA (Google
+  Gemini, tier gratuito — ChatGPT/Claude.ai descartados por não incluir
+  API na assinatura de chat; OpenAI API sem tier gratuito confirmado;
+  Cohere trocado por restrição de uso comercial). Chave armazenada em
+  `Ens.Config.Credentials`. `Guardian.RAG.GeminiClient` implementado e
+  testado ao vivo (embeddings 768-dim + geração). Configuração SSL de
+  saída (`PublicHTTPS`) criada para HTTPS a hosts públicos. Ver
+  `04_FASE_3_RAG_ASSISTANT.md`.
+
 ## 8. Próximo passo imediato
 
-Fase 3 — RAG Assistant. Bloqueio antes de codificar: decisão do
-proprietário sobre provedor/modelo de IA para embeddings e geração de
-resposta (custo, acesso, dados) — ver seção 5. Vector Search nativo do
-IRIS já confirmado (VR-001); falta apenas essa escolha para começar a
-ingestão.
+Fase 3: modelo de dados (tabela de documentos + fragmentos com coluna
+`VECTOR`), estratégia de chunking justificada, e ingestão de um corpus
+inicial pequeno.
