@@ -23,7 +23,7 @@ exceção foi aplicada até aqui.
 |---|---|---|
 | Fase 0 — Setup e arquitetura | `01_FASE_0_SETUP_ARQUITETURA.md` | Em andamento — infraestrutura e VRs críticos fechados; bônus (multimodelo/híbrida/API pública) pendentes |
 | Fase 1 — Production COS / interoperabilidade | `02_FASE_1_PYPROD_INTEROPERABILITY.md` | Objetivo principal cumprido — Service/Process/Operation com adaptador de arquivo, mensagem real ponta a ponta, cenário de falha/recuperação testado e reproduzível (`docs/experiments/01_falha_recuperacao_producao.md`). Falta apenas Business Rules (bônus opcional) |
-| Fase 2 — Production Monitor / telemetria | `03_FASE_2_PRODUCTION_MONITOR_WSGI_TELEMETRY.md` | Não iniciada |
+| Fase 2 — Production Monitor / telemetria | `03_FASE_2_PRODUCTION_MONITOR_WSGI_TELEMETRY.md` | Primeira versão no ar — REST API + página HTML, testada contra falha real. Falta validação visual no navegador pelo proprietário e série temporal persistida |
 | Fase 3 — RAG Assistant | `04_FASE_3_RAG_ASSISTANT.md` | Não iniciada |
 | Fase 4 — AI Investigator / IntegratedML / API | `05_FASE_4_AI_INVESTIGATOR_INTEGRATEDML_API.md` | Não iniciada (IntegratedML já registrado como bloqueado — VR-003) |
 | Fase 5 — Hardening, testes, demo | `06_FASE_5_HARDENING_TESTS_DEMO.md` | Não iniciada |
@@ -84,6 +84,17 @@ presumir 23h59 (herdado do contexto, ainda aberto).
 - **09/09/2026** — Iniciada a organização dos arquivos de entrega:
   `docs/experiments/` para roteiros reproduzíveis (uso na gravação do
   vídeo do concurso) e `README.md` (inglês, público) na raiz.
+- **09/09/2026** — Fase 2 (Production Monitor) iniciada: regras de saúde
+  documentadas (saudável/degradado/indisponível/desconhecido, baseadas
+  apenas em fontes de dado reais confirmadas — `Ens_Config.Item`,
+  `Ens.Queue`, `Ens.MessageHeader`, `Ens.Director`). Implementado
+  `Guardian.Monitor.StatusCollector` (lógica), `Guardian.API.MonitorAPI`
+  (REST `/api/guardian/status`) e `Guardian.UI.MonitorPage` (HTML em
+  `/csp/guardian/Guardian.UI.MonitorPage.cls`). Testado contra o
+  Experimento 1 (falha real): hosts corretamente mudam para `degraded`
+  durante a falha. Erro real de compilação encontrado e documentado:
+  `Parameter` com underscore quebra `..#NOME` (operador de concatenação
+  do ObjectScript interfere no parser). Ver `03_FASE_2_...md`.
 
 ## 5. Registro de pendências (VERIFY_REQUIRED)
 
@@ -130,6 +141,7 @@ contexto seção 5), vídeo explicativo, e o próprio conteúdo do `README.md`
 
 ## 8. Próximo passo imediato
 
-Fase 2: expor o estado real da Production (hosts, filas, mensagens) através
-de uma interface própria (Production Monitor), reaproveitando as consultas
-a `Ens.MessageHeader`/`Ens_Config.Item` já validadas manualmente na Fase 1.
+Validação visual do Production Monitor no navegador pelo proprietário
+(`http://localhost:52773/csp/guardian/Guardian.UI.MonitorPage.cls`). Depois
+disso, decidir entre reforçar o Monitor (série temporal persistida) ou
+avançar para a Fase 3 (RAG Assistant).
