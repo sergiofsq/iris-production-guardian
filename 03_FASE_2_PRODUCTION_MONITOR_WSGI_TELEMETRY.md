@@ -156,9 +156,23 @@ mostrada como recuperada instantaneamente sem base real.
 - Sem autenticação de sessão de usuário final além da autenticação básica
   do IRIS já usada no restante do projeto.
 
-## 7. Próximo passo
+## 7. Validação visual (09/09/2026) — confirmada
 
-Testar visualmente no navegador (pedir confirmação ao proprietário com
-print) e, se aprovado, decidir entre: (a) avançar para a Fase 3 (RAG
-Assistant) ou (b) reforçar o Monitor com série temporal persistida antes
-de seguir.
+Print `Imagens/Aplicacao/MonitroPage2.jpg`: após a correção da seção 4.2,
+`Guardian.Service.FileIncidentService` aparece **HEALTHY** (verde) e
+`Guardian.Process.IncidentRouterProcess`/`Guardian.Operation.FileOutputOperation`
+aparecem **DEGRADED** (âmbar) — exatamente o estado esperado, ainda dentro
+da janela de 15 min do erro de teste da seção 5. Aprovado pelo
+proprietário.
+
+**Estado da Fase 2: primeira versão funcional concluída.** Série temporal
+persistida e detecção de host travado ficam como melhoria futura (seção
+6), não bloqueiam o avanço do MVP.
+
+## 8. Próximo passo
+
+Fase 3 — RAG Assistant. Antes de implementar: decisão do proprietário
+sobre provedor/modelo de IA para embeddings e geração (pendência já
+registrada em `00_MASTER_PLAN.md` §5 e no contexto, seção 4) — Vector
+Search nativo do IRIS já confirmado disponível (VR-001), falta escolher
+o que gera os vetores e a resposta.

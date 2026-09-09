@@ -23,7 +23,7 @@ exceção foi aplicada até aqui.
 |---|---|---|
 | Fase 0 — Setup e arquitetura | `01_FASE_0_SETUP_ARQUITETURA.md` | Em andamento — infraestrutura e VRs críticos fechados; bônus (multimodelo/híbrida/API pública) pendentes |
 | Fase 1 — Production COS / interoperabilidade | `02_FASE_1_PYPROD_INTEROPERABILITY.md` | Objetivo principal cumprido — Service/Process/Operation com adaptador de arquivo, mensagem real ponta a ponta, cenário de falha/recuperação testado e reproduzível (`docs/experiments/01_falha_recuperacao_producao.md`). Falta apenas Business Rules (bônus opcional) |
-| Fase 2 — Production Monitor / telemetria | `03_FASE_2_PRODUCTION_MONITOR_WSGI_TELEMETRY.md` | Primeira versão no ar — REST API + página HTML, testada contra falha real. Falta validação visual no navegador pelo proprietário e série temporal persistida |
+| Fase 2 — Production Monitor / telemetria | `03_FASE_2_PRODUCTION_MONITOR_WSGI_TELEMETRY.md` | Primeira versão concluída e validada visualmente pelo proprietário. Série temporal persistida fica como melhoria futura |
 | Fase 3 — RAG Assistant | `04_FASE_3_RAG_ASSISTANT.md` | Não iniciada |
 | Fase 4 — AI Investigator / IntegratedML / API | `05_FASE_4_AI_INVESTIGATOR_INTEGRATEDML_API.md` | Não iniciada (IntegratedML já registrado como bloqueado — VR-003) |
 | Fase 5 — Hardening, testes, demo | `06_FASE_5_HARDENING_TESTS_DEMO.md` | Não iniciada |
@@ -141,7 +141,8 @@ contexto seção 5), vídeo explicativo, e o próprio conteúdo do `README.md`
 
 ## 8. Próximo passo imediato
 
-Validação visual do Production Monitor no navegador pelo proprietário
-(`http://localhost:52773/csp/guardian/Guardian.UI.MonitorPage.cls`). Depois
-disso, decidir entre reforçar o Monitor (série temporal persistida) ou
-avançar para a Fase 3 (RAG Assistant).
+Fase 3 — RAG Assistant. Bloqueio antes de codificar: decisão do
+proprietário sobre provedor/modelo de IA para embeddings e geração de
+resposta (custo, acesso, dados) — ver seção 5. Vector Search nativo do
+IRIS já confirmado (VR-001); falta apenas essa escolha para começar a
+ingestão.
