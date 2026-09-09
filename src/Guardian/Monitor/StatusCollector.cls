@@ -23,10 +23,22 @@ ClassMethod Collect() As %DynamicObject
 {
 	Set tResult = {}
 
+	// tProdState e' so para exibicao (Ens.Director localiza esse texto
+	// conforme o idioma do navegador - "Running" vira "Em execucao" em
+	// pt-BR). A decisao de saude usa IsProductionRunning, que retorna um
+	// %Boolean real, independente de idioma - comparar a string localizada
+	// contra "Running" foi um bug real encontrado nesta v1 (todo host
+	// aparecia "unavailable" quando acessado em portugues).
 	Do ##class(Ens.Director).GetProductionSummary(.tInfo)
 	Set tProdEntry = $Get(tInfo(..#Production))
 	Set tProdState = $Select(tProdEntry'="":$List(tProdEntry,1), 1:"")
-	Set tProdRunning = (tProdState = "Running")
+
+	// IsProductionRunning devolve o nome da production ativa por parametro
+	// de saida (nao aceita nome como filtro de entrada, apesar da aparencia
+	// - confirmado testando as duas formas). Conferimos que a que esta
+	// rodando e' de fato a nossa, nao so "alguma coisa está rodando".
+	Set tAnyRunning = ##class(Ens.Director).IsProductionRunning(.tRunningProdName)
+	Set tProdRunning = tAnyRunning && (tRunningProdName = ..#Production)
 
 	Set tResult.production = ..#Production
 	Set tResult.productionState = tProdState

@@ -100,6 +100,30 @@ informação documentada explicitamente antes de testar — registrado aqui
 como conhecimento verificado empiricamente, útil para o artigo da
 metodologia de IA (exemplo real de erro e correção).
 
+## 4.2 Segundo erro real: estado da Production localizado por idioma
+
+Confirmado visualmente pelo proprietário (print em
+`Imagens/Aplicacao/MonitroPage1.jpg`): ao abrir a página no navegador
+(que envia `Accept-Language: pt-BR`), **todos os hosts apareciam como
+`unavailable`**, mesmo com a Production rodando e mensagens fluindo
+normalmente.
+
+Causa raiz: a regra usava `$List(tProdEntry,1) = "Running"` (comparação
+de string) a partir de `Ens.Director.GetProductionSummary`. Esse texto é
+**localizado pelo IRIS conforme o idioma do navegador** — em pt-BR vem
+`"Em execução"`, não `"Running"` — então a comparação sempre falhava fora
+do inglês. Via curl (sem header de idioma) o bug não aparecia, por isso
+não foi pego nos testes anteriores.
+
+Corrigido usando `##class(Ens.Director).IsProductionRunning(.pName)` —
+retorna um `%Boolean` real (não texto) e devolve por parâmetro de saída o
+nome da production efetivamente rodando; comparamos esse nome com o
+esperado (`..#Production`) para não presumir que só existe uma production
+possível no namespace. `tProdState` continua guardado só para exibição na
+tela (o texto localizado é uma informação útil para o usuário, só não
+pode ser usado na decisão de saúde). Validado testando o mesmo request
+com `Accept-Language: pt-BR` via curl antes e depois da correção.
+
 ## 5. Teste real (09/09/2026) — evidência, não simulação
 
 Com o Monitor no ar, reproduzido o Experimento 1
