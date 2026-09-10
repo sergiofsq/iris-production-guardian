@@ -224,6 +224,30 @@ Detalhe completo em `04_FASE_3_RAG_ASSISTANT.md`.
   `04_FASE_3_RAG_ASSISTANT.md` §6.
 - Estado: **confirmado**.
 
+## AI Incident Investigator (10/09/2026)
+
+Detalhe completo em `05_FASE_4_AI_INVESTIGATOR_INTEGRATEDML_API.md`.
+
+### Investigator funcional (item principal)
+
+- Prova: `Guardian.Investigator.EvidenceCollector` junta saúde real
+  (reaproveita `Guardian.Monitor.StatusCollector`), eventos reais de
+  `Ens.MessageHeader` (com erro convertido para texto legível via
+  `$System.Status.GetErrorText`) e documentação relevante (reaproveita a
+  busca híbrida do RAG via `Guardian.RAG.Query.Retrieve`);
+  `Guardian.Investigator.Analyzer` gera resumo/hipóteses/lacunas/próximos
+  passos separando observação de hipótese, sem percentual de confiança
+  inventado; `Guardian.UI.InvestigatorPage` apresenta tudo e persiste a
+  investigação em `Guardian_Investigator.Investigation`.
+- Evidência: investigação real de `Guardian.Operation.FileOutputOperation`
+  contra o histórico do experimento de falha/recuperação da Fase 1 — 20
+  eventos reais recuperados (incluindo os 3 episódios de erro `#5005`),
+  análise corretamente separou observações de hipóteses, e sinalizou como
+  **lacuna** (não como fato inventado) a discrepância entre saúde
+  `unavailable` e `erros recentes=0`. Investigação confirmada persistida
+  por consulta SQL direta.
+- Estado: **confirmado**.
+
 ## Pendências ainda abertas (não testadas nesta rodada)
 
 - WSGI e PyProd: não são pendência técnica, são conflito estrutural com a

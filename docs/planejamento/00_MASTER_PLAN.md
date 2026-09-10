@@ -25,7 +25,7 @@ exceção foi aplicada até aqui.
 | Fase 1 — Production COS / interoperabilidade | `02_FASE_1_PYPROD_INTEROPERABILITY.md` | Objetivo principal cumprido — Service/Process/Operation com adaptador de arquivo, mensagem real ponta a ponta, cenário de falha/recuperação testado e reproduzível (`docs/experiments/01_falha_recuperacao_producao.md`). Falta apenas Business Rules (bônus opcional) |
 | Fase 2 — Production Monitor / telemetria | `03_FASE_2_PRODUCTION_MONITOR_WSGI_TELEMETRY.md` | Primeira versão concluída e validada visualmente pelo proprietário. Série temporal persistida fica como melhoria futura |
 | Fase 3 — RAG Assistant | `04_FASE_3_RAG_ASSISTANT.md` | Completa e testada: ingestão, chunking, armazenamento vetorial, recuperação híbrida (vetorial + lexical via iFind, bônus +3, ver §4), geração com citação, abstenção calibrada, página de consulta. Validação visual concluída em 10/09/2026 (fundo/logo ajustados) |
-| Fase 4 — AI Investigator / IntegratedML / API | `05_FASE_4_AI_INVESTIGATOR_INTEGRATEDML_API.md` | Não iniciada (IntegratedML já registrado como bloqueado — VR-003) |
+| Fase 4 — AI Investigator / IntegratedML / API | `05_FASE_4_AI_INVESTIGATOR_INTEGRATEDML_API.md` | AI Incident Investigator implementado e testado (10/09/2026): evidência real (saúde + eventos + documentação) + análise com IA, hipóteses separadas de observação, sem confiança inventada. IntegratedML bloqueado (VR-003) e API pública seguem fora do escopo |
 | Fase 5 — Hardening, testes, demo | `06_FASE_5_HARDENING_TESTS_DEMO.md` | Não iniciada |
 | Scorecard de evidências | `07_SCORECARD_EVIDENCIAS.md` | Ativo — atualizado a cada VR fechado |
 
@@ -145,6 +145,20 @@ presumir 23h59 (herdado do contexto, ainda aberto).
   aceitou a sintaxe esperada — decisão de usar um bônus fixo por match
   lexical em vez de inventar uma posição de rank não calculada. Ver
   `04_FASE_3_RAG_ASSISTANT.md` §6.
+- **10/09/2026** — Fase 4 (AI Incident Investigator) implementada:
+  `Guardian.Investigator.EvidenceCollector` (saúde via `StatusCollector`
+  reaproveitado, eventos reais de `Ens.MessageHeader` com texto de erro
+  legível via `$System.Status.GetErrorText`, documentação via
+  `Guardian.RAG.Query.Retrieve`), `Guardian.Investigator.Analyzer`
+  (prompt que separa observação de hipótese, proíbe confiança inventada,
+  resiliente a falha do modelo), `Guardian.UI.InvestigatorPage`.
+  Refactor em `Guardian.RAG.Query`: extraído `Retrieve()` de `Ask()` para
+  reuso sem geração duplicada — comportamento de `Ask` confirmado
+  idêntico após o refactor. Dois bugs reais corrigidos: cutoff de janela
+  de tempo multi-dia (`<ILLEGAL VALUE>` em `$ZDATETIME`) e conversão do
+  `ErrorStatus` bruto do `Ens.MessageHeader`. Testado contra o histórico
+  real do experimento de falha/recuperação da Fase 1 — ver
+  `05_FASE_4_AI_INVESTIGATOR_INTEGRATEDML_API.md`.
 
 ## 5. Registro de pendências (VERIFY_REQUIRED)
 
@@ -210,10 +224,12 @@ erro pontual, excluído a pedido direto do proprietário.
 
 ## 8. Próximo passo imediato
 
-Validação visual (RAG e Monitor) e busca híbrida concluídas em
-10/09/2026 — decisão do proprietário foi manter o Gemini free tier por
-enquanto (token instável, mas sem troca de provedor por ora). Fase 3
-está com todos os itens não-bônus fechados; resta só como bônus opcional
-mais corpus/comparação de chunking (ver `04_FASE_3_RAG_ASSISTANT.md` §4).
-Próxima decisão: avançar para a Fase 4 (AI Incident Investigator, ainda
-não iniciada) ou continuar reforçando a Fase 3.
+Fases 0-4 todas com a versão principal (não-bônus) concluída e testada
+em 10/09/2026. AI Incident Investigator (Fase 4) implementado e validado
+contra o cenário real de falha da Fase 1 — falta validação visual da
+página pelo proprietário. Depois disso, decidir entre: Fase 5
+(hardening, testes formais, gravação do vídeo, artigo — ainda não
+iniciada), mais bônus opcionais (API pública, multimodelo, mais
+componentes testados no Investigator), ou revisitar a decisão de
+provedor de IA (Gemini free tier segue instável, ver `04_FASE_3_RAG_ASSISTANT.md` §6
+para o timeout real observado durante os testes da Fase 4).

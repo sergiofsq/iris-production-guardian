@@ -32,12 +32,13 @@ Parameter RRFConstant = 60;
 /// para nao invalidar essa calibracao ja testada.
 Parameter MinSimilarity = 0.58;
 
-/// Faz a pergunta pQuestion contra o corpus indexado. Retorna um
-/// %DynamicObject: {question, abstained, answer, sources:[...]}.
-ClassMethod Ask(pQuestion As %String) As %DynamicObject
+/// Recuperacao hibrida pura (sem geracao) - reaproveitada por Ask() e
+/// por qualquer outra parte do projeto que precise so dos trechos
+/// relevantes (ex.: Guardian.Investigator.EvidenceCollector, Fase 4).
+/// Retorna um %DynamicObject: {sources:[...], bestSimilarity, contextText}.
+ClassMethod Retrieve(pQuestion As %String) As %DynamicObject
 {
 	Set tResult = {}
-	Set tResult.question = pQuestion
 
 	Set tQueryVec = ##class(Guardian.RAG.GeminiClient).Embed(pQuestion)
 	Set tQueryStr = ##class(Guardian.RAG.Ingestion).VectorToString(tQueryVec)
@@ -141,8 +142,23 @@ ClassMethod Ask(pQuestion As %String) As %DynamicObject
 
 	Set tResult.sources = tSources
 	Set tResult.bestSimilarity = tBestSim
+	Set tResult.contextText = tContextText
 
-	If (tBestSim < ..#MinSimilarity) || (tSources.%Size() = 0) {
+	Quit tResult
+}
+
+/// Faz a pergunta pQuestion contra o corpus indexado. Retorna um
+/// %DynamicObject: {question, abstained, answer, sources:[...]}.
+ClassMethod Ask(pQuestion As %String) As %DynamicObject
+{
+	Set tResult = {}
+	Set tResult.question = pQuestion
+
+	Set tRetrieval = ..Retrieve(pQuestion)
+	Set tResult.sources = tRetrieval.sources
+	Set tResult.bestSimilarity = tRetrieval.bestSimilarity
+
+	If (tRetrieval.bestSimilarity < ..#MinSimilarity) || (tRetrieval.sources.%Size() = 0) {
 		Set tResult.abstained = 1
 		Set tResult.answer = "Não há informação suficiente na base indexada para responder com confiança a esta pergunta."
 		Quit tResult
@@ -153,7 +169,7 @@ ClassMethod Ask(pQuestion As %String) As %DynamicObject
 		"Se as informações não forem suficientes, diga explicitamente que não sabe - não invente. " _
 		"Cite a fonte (o texto entre colchetes [Fonte: ...]) usada em cada afirmação." _
 		$Char(10, 10) _
-		"CONTEXTO:" _ $Char(10) _ tContextText _
+		"CONTEXTO:" _ $Char(10) _ tRetrieval.contextText _
 		$Char(10) _
 		"PERGUNTA: " _ pQuestion
 

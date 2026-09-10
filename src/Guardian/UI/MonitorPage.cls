@@ -53,6 +53,7 @@ ClassMethod OnPage() As %Status
 	<div class="ig-logo-badge"><img src="/csp/guardian/iris-guardian-logo-header.png" alt="IRIS Guardian"></div>
 	<nav>
 		<a href="Guardian.UI.MonitorPage.cls" aria-current="page">Monitor</a>
+		<a href="Guardian.UI.InvestigatorPage.cls">Investigator</a>
 		<a href="Guardian.UI.RAGPage.cls">RAG Assistant</a>
 	</nav>
 </header>
