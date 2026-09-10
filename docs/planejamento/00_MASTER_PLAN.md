@@ -176,11 +176,24 @@ proprietário daqui em diante — não criar mais arquivos soltos na raiz).
 | `src/Guardian/` | Código-fonte COS (classes da Production, mensagens, hosts) | Público |
 | `assets/` | Identidade visual (logo, tokens CSS) | Público |
 | `pessoal/` (`Estudar.txt`, `Anotações para Usuário.txt`, `Script de Apresentação V1.txt`) | Material pessoal de aprendizado/apresentação do proprietário | **Não** entra na entrega — pasta inteira no `.gitignore` |
-| `Imagens/` | Screenshots pessoais de estudo/config, **exceto** `ImagemMatriz.png` (arte-fonte do logo, ver `07_SCORECARD_EVIDENCIAS.md`) | Pasta majoritariamente pessoal, mas `ImagemMatriz.png` é rastreado no git intencionalmente — não aplicar regra de "fora do commit" a esse arquivo específico |
+| `Imagens/ImagemMatriz.png` | Arte-fonte do logo (ver `07_SCORECARD_EVIDENCIAS.md`) | Rastreado no git |
+| `Imagens/guardian-boas-vindas.png`, `guardian-landing-hero.png`, `guardian-rag-assistant.png` | Arte ilustrativa/conceitual adicional (variações do escudo da marca — retrato, hero horizontal, composição RAG), gerada em 10/09/2026, mesmo espírito de `ImagemMatriz.png` | Rastreado no git — decisão de uso público (README/artigo/vídeo) ainda pendente, mas já versionado |
+| `Imagens/Aplicacao/MonitroPage1.jpg`, `MonitroPage2.jpg` | Prints de evidência **citados por caminho** em `03_FASE_2_PRODUCTION_MONITOR_WSGI_TELEMETRY.md` §4.2 e §7 (bug de locale, validação visual) | Rastreado no git — a citação no doc agora resolve para quem clonar o repo |
+| `Imagens/Config/*.jpg` | Screenshots pessoais de configuração (VS Code, namespace, Production) — sem citação em nenhum doc de fase | Rastreado no git a pedido explícito do proprietário (10/09/2026: "tudo o que está na pasta do projeto precisa ser commitado") — conferido visualmente antes do commit, sem credencial exposta |
+| `Imagens/Error/` (`VSCode.jpg`) | Screenshot pessoal de um erro pontual do VS Code | **Não** entra na entrega — exceção explícita do proprietário (10/09/2026) à regra de "commitar tudo", agora no `.gitignore` |
+| `Imagens/.DS_Store`, `**/Thumbs.db` | Lixo de sistema operacional (Finder/Explorer) | No `.gitignore` — não versionado mesmo com a regra acima, por não ser conteúdo do projeto |
 
 Pendente: artigo da comunidade (português, com tags exigidas — ver
 contexto seção 5), vídeo explicativo, e o próprio conteúdo do `README.md`
 (criado nesta sessão, ver `04_...`/commits).
+
+**10/09/2026 — política de versionamento revisada:** proprietário pediu
+que tudo dentro da pasta do projeto seja commitado, com duas exceções
+explícitas, ambas no `.gitignore`: (1) `pessoal/` — contém credencial em
+texto puro em `Anotações para Usuário.txt` (`guardian`/`guardian`) que o
+proprietário confirmou **não** deve ir para o git, mantendo a regra de
+"sem segredo versionado"; (2) `Imagens/Error/` — screenshot pessoal de um
+erro pontual, excluído a pedido direto do proprietário.
 
 ## 8. Próximo passo imediato
 
