@@ -261,6 +261,40 @@ a favor da escolha já feita na Fase 3 (preservar unidades de sentido
 reduz ruído no vetor de embedding) — antes só justificada por raciocínio,
 agora também por comparação quantitativa.
 
+## 8. Ampliação do corpus (10/09/2026)
+
+Corpus original: 5 documentos (fases 00-04), 79 fragmentos. Ampliado
+para 9 documentos, incluindo dois tipos de fonte nova:
+
+- **Docs do próprio projeto que faltavam**: `05_FASE_4_AI_INVESTIGATOR_INTEGRATEDML_API.md`
+  (13 fragmentos) e `07_SCORECARD_EVIDENCIAS.md` (4 fragmentos) —
+  existiam mas nunca tinham sido ingeridos.
+- **Documentação pública real do IRIS**, via `WebFetch` em artigos da
+  InterSystems Developer Community (`community.intersystems.com`):
+  - ["Using IRIS as a Vector Database"](https://community.intersystems.com/post/using-iris-vector-database)
+    (Piyush Adhikari, 24/12/2025) — 3 fragmentos.
+  - ["Business Rules Deep Dive: Dynamic Objects and Property Access Pitfalls - Part 1"](https://community.intersystems.com/post/business-rules-deep-dive-dynamic-objects-and-property-access-pitfalls-part-1)
+    (Muhammad Waseem) — 4 fragmentos.
+- **Achado real, não escondido**: a tentativa original era usar
+  `docs.intersystems.com` (documentação oficial), mas o corpo dos
+  artigos é renderizado via JavaScript — o `WebFetch` (que converte HTML
+  estático para markdown) só enxergava o menu de navegação, não o texto
+  do artigo. A Developer Community (`community.intersystems.com`) é
+  HTML server-renderizado e funcionou. Nota de precisão: o `WebFetch`
+  processa a página com um modelo a partir do prompt dado, então o texto
+  ingerido é uma extração/condensação da página, não uma cópia
+  byte-a-byte do HTML original — registrado no `Version` de cada
+  `Document` ("obtido 10/09/2026") e citado nesta seção para quem for
+  auditar a proveniência.
+- **Teste real de valor**: pergunta "Como lidar com propriedades com
+  underscore em Business Rules e Dynamic Objects do IRIS?" recuperou e
+  citou corretamente o artigo novo da Developer Community, **cruzando**
+  com o achado interno já documentado do projeto sobre o operador `_`
+  quebrar o parser do ObjectScript (`03_FASE_2...md`) — e **absteve-se
+  honestamente** de detalhar a correção exata, porque o artigo ingerido
+  é só a Parte 1 de uma série e a correção fica para a Parte 2 (que não
+  foi ingerida) — não inventou uma solução que não tinha.
+
 ## 4. Estado atual e pendências
 
 **Concluído e testado (09/09/2026):** cliente Gemini, esquema de dados,
@@ -272,11 +306,11 @@ pergunta relevante (respondida corretamente e citada), uma irrelevante
 derrubar a página). **Busca híbrida** (lexical + vetorial) implementada e
 testada em 10/09/2026 — ver seção 6. **Conjunto de avaliação de 10
 perguntas, calibração de `MinSimilarity` e comparação formal de
-chunking** concluídos em 10/09/2026 — ver seção 7.
+chunking** concluídos em 10/09/2026 — ver seção 7. **Corpus ampliado**
+de 5 para 9 documentos, incluindo documentação pública real do IRIS —
+ver seção 8.
 
 **Pendente:**
-- Ingestão de documentação além dos próprios arquivos de fase do projeto
-  (ex. documentação pública do IRIS), se fizer sentido para o vídeo/artigo.
 - Decisão de provedor de IA para resolver o esgotamento do tier gratuito
   do Gemini (ver `00_MASTER_PLAN.md` §8) — reforçada pelo timeout real
   observado no teste de busca híbrida acima.

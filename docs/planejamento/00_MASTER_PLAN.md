@@ -168,6 +168,17 @@ presumir 23h59 (herdado do contexto, ainda aberto).
   relevante), e comparação formal A/B de chunking (parágrafo vs janela
   fixa ingênua) — parágrafo venceu em similaridade nas 7 perguntas, sem
   exceção (0.709 vs 0.684 de média). Ver `04_FASE_3_RAG_ASSISTANT.md` §7.
+- **10/09/2026** — Corpus do RAG ampliado de 5 para 9 documentos: os
+  dois docs de fase que faltavam (`05_FASE_4`, `07_SCORECARD`) e dois
+  artigos públicos reais da InterSystems Developer Community (Vector
+  Search, Business Rules) obtidos via `WebFetch`. Achado registrado: a
+  documentação oficial `docs.intersystems.com` é renderizada via
+  JavaScript e o `WebFetch` só via o menu, não o corpo do artigo — a
+  Developer Community (HTML estático) funcionou. Testado com pergunta
+  real sobre underscore em Business Rules: citou a fonte pública nova
+  corretamente, cruzou com o achado interno do projeto sobre o mesmo
+  tema, e absteve-se honestamente da parte que o artigo (Parte 1 de uma
+  série) não cobria. Ver `04_FASE_3_RAG_ASSISTANT.md` §8.
 
 ## 5. Registro de pendências (VERIFY_REQUIRED)
 
