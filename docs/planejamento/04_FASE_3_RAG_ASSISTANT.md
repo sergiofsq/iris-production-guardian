@@ -200,6 +200,67 @@ rankings independentes antes de montar o TopK final.
     (ver `00_MASTER_PLAN.md` §8); na segunda tentativa funcionou
     normalmente.
 
+## 7. Conjunto de avaliação, calibração e comparação de chunking (10/09/2026)
+
+Reforço pós-Fase 4, código em `Guardian.RAG.Eval`. Conjunto de 10
+perguntas (7 relevantes, com o `Document.ID` esperado do corpus original
+de 5 documentos; 3 irrelevantes) — amplia os 2 pontos usados na
+calibração original de `MinSimilarity`.
+
+### 7.1 Calibração do limiar de abstenção
+
+`RunCalibration()` roda as 10 perguntas contra o corpus de **produção**
+(`Guardian_RAG.Chunk`, o mesmo usado pelo RAG Assistant real) via
+`Guardian.RAG.Query.Retrieve`. Resultado real:
+
+| Pergunta | Relevante? | Melhor similaridade |
+|---|---|---|
+| Por que o Gemini foi escolhido? | sim | 0.761 |
+| Dimensão do embedding? | sim | 0.738 |
+| Causa do erro #5005? | sim | 0.668 |
+| Por que IntegratedML não funciona? | sim | 0.686 |
+| Estados de saúde do Monitor? | sim | 0.761 |
+| Arquitetura Service/Process/Operation? | sim | 0.673 |
+| Foreign Table funciona? | sim | 0.677 |
+| Capital da França? | não | 0.507 |
+| Treinar cachorro? | não | 0.515 |
+| Bolo de chocolate? | não | 0.521 |
+
+**10/10 classificadas corretamente pelo limiar de 0.58.** As relevantes
+ficam entre 0.667-0.761, as irrelevantes entre 0.507-0.521 — uma lacuna
+limpa de ~0.15, com 0.58 bem no meio. Calibração original (2 pontos)
+confirmada com um conjunto 5x maior; nenhum ajuste necessário no limiar.
+
+### 7.2 Comparação formal de estratégias de chunking
+
+Para não misturar "estratégia diferente" com "texto diferente" (os docs
+de fase mudaram bastante desde a ingestão original de 09/09/2026), as
+duas estratégias foram aplicadas ao **mesmo texto atual**, geradas de
+novo em tabelas paralelas (`Guardian_RAG.ChunkParagraphCompare` e
+`Guardian_RAG.ChunkAltStrategy`) — nenhuma toca o corpus real do RAG
+Assistant em produção. Estratégia alternativa: janela fixa de 800
+caracteres com 150 de sobreposição, **ignorando** limite de parágrafo de
+propósito (corta no meio de frases) — a hipótese "ingênua" contra a
+estratégia em produção (agrupa por parágrafo).
+
+`RunChunkingComparison()` roda as 7 perguntas relevantes, recuperação
+vetorial pura (TOP 1), contra as duas tabelas. Resultado real:
+
+| Métrica | Parágrafo (produção) | Janela fixa (ingênua) |
+|---|---|---|
+| Acerto do documento certo (top-1) | 7/7 (100%) | 7/7 (100%) |
+| Similaridade média | **0.709** | 0.684 |
+
+A estratégia de parágrafo teve similaridade **maior em todas as 7
+perguntas**, sem exceção — maior diferença na pergunta sobre IntegratedML
+(0.686 vs 0.630, gap de 0.056). Ambas acertam o documento certo em 100%
+dos casos (o corpus é pequeno e bem separado por assunto, então essa
+métrica sozinha não diferencia as estratégias), mas a similaridade
+consistentemente mais alta da estratégia por parágrafo é evidência real
+a favor da escolha já feita na Fase 3 (preservar unidades de sentido
+reduz ruído no vetor de embedding) — antes só justificada por raciocínio,
+agora também por comparação quantitativa.
+
 ## 4. Estado atual e pendências
 
 **Concluído e testado (09/09/2026):** cliente Gemini, esquema de dados,
@@ -209,14 +270,11 @@ consulta, resiliência a falha do modelo. Testes reais incluíram uma
 pergunta relevante (respondida corretamente e citada), uma irrelevante
 (abstenção correta) e uma indisponibilidade real da API (503, tratada sem
 derrubar a página). **Busca híbrida** (lexical + vetorial) implementada e
-testada em 10/09/2026 — ver seção 6.
+testada em 10/09/2026 — ver seção 6. **Conjunto de avaliação de 10
+perguntas, calibração de `MinSimilarity` e comparação formal de
+chunking** concluídos em 10/09/2026 — ver seção 7.
 
 **Pendente:**
-- Comparação formal de estratégias de chunking (o critério do concurso
-  pede "justificativa", que já temos por raciocínio; um teste comparativo
-  A/B com outra estratégia fortaleceria a evidência).
-- Conjunto de avaliação maior para calibrar `MinSimilarity` com mais
-  rigor.
 - Ingestão de documentação além dos próprios arquivos de fase do projeto
   (ex. documentação pública do IRIS), se fizer sentido para o vídeo/artigo.
 - Decisão de provedor de IA para resolver o esgotamento do tier gratuito

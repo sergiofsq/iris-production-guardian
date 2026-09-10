@@ -159,6 +159,15 @@ presumir 23h59 (herdado do contexto, ainda aberto).
   `ErrorStatus` bruto do `Ens.MessageHeader`. Testado contra o histórico
   real do experimento de falha/recuperação da Fase 1 — ver
   `05_FASE_4_AI_INVESTIGATOR_INTEGRATEDML_API.md`.
+- **10/09/2026** — Monitor: série temporal persistida
+  (`Guardian_Monitor.HealthSample`) e detecção de host travado
+  (`StatusCollector.IsStuck`), ver `03_FASE_2_PRODUCTION_MONITOR_WSGI_TELEMETRY.md`
+  §6.1. RAG: conjunto de avaliação de 10 perguntas
+  (`Guardian.RAG.Eval`) — calibração de `MinSimilarity` confirmada
+  10/10 correta (lacuna limpa entre 0.51-0.52 irrelevante e 0.67-0.76
+  relevante), e comparação formal A/B de chunking (parágrafo vs janela
+  fixa ingênua) — parágrafo venceu em similaridade nas 7 perguntas, sem
+  exceção (0.709 vs 0.684 de média). Ver `04_FASE_3_RAG_ASSISTANT.md` §7.
 
 ## 5. Registro de pendências (VERIFY_REQUIRED)
 

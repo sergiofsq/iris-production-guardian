@@ -190,9 +190,14 @@ Detalhe completo em `04_FASE_3_RAG_ASSISTANT.md`.
   Matryoshka representation do Gemini) e estratégia de chunking
   (parágrafo até 800 caracteres, sobreposição de 150) documentadas com
   raciocínio explícito em `04_FASE_3_RAG_ASSISTANT.md` seções 3 e 3.2.
-- Estado: **confirmado** (justificativa por raciocínio registrada; um
-  teste comparativo A/B formal entre estratégias fica como reforço
-  futuro, não bloqueia o critério).
+- Reforço quantitativo (10/09/2026): comparação formal A/B contra
+  chunking por janela fixa ingênua (`Guardian.RAG.Eval.RunChunkingComparison`,
+  7 perguntas, mesmo texto para as duas estratégias) — parágrafo venceu
+  em similaridade média nas 7 perguntas (0.709 vs 0.684), sem exceção.
+  Ambas acertaram o documento certo em 100% dos casos. Ver
+  `04_FASE_3_RAG_ASSISTANT.md` §7.2.
+- Estado: **confirmado**, agora com evidência quantitativa além do
+  raciocínio.
 
 ### Clareza do pipeline RAG (+2)
 

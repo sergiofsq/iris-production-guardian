@@ -59,6 +59,42 @@ ClassMethod Setup() As %Status
 	Quit tSC
 }
 
+/// Duas tabelas paralelas para a comparacao formal de estrategias de
+/// chunking (reforco de 10/09/2026, ver
+/// docs/planejamento/04_FASE_3_RAG_ASSISTANT.md secao 7). Mesmo formato
+/// de Chunk, referenciando os MESMOS Document.ID ja existentes (so como
+/// rotulo/join de volta a Source/Title, nao cria documentos duplicados).
+/// Duas tabelas (nao uma) porque a comparacao precisa ser justa: o texto
+/// dos docs de fase mudou bastante desde a ingestao original de 09/09/2026
+/// (varias edicoes desde entao), entao comparar contra o Guardian_RAG.Chunk
+/// de producao misturaria "estrategia diferente" com "texto diferente".
+/// Aqui as duas estrategias sao aplicadas ao MESMO texto atual, geradas
+/// de novo - nem uma toca o corpus real do RAG Assistant em producao.
+ClassMethod SetupChunkingComparison() As %Status
+{
+	Set tSC = $$$OK
+	Try {
+		For tTable = "ChunkParagraphCompare", "ChunkAltStrategy" {
+			Set tStmt = ##class(%SQL.Statement).%New()
+			Do tStmt.%Prepare(
+				"CREATE TABLE IF NOT EXISTS Guardian_RAG."_tTable_" (" _
+				"DocumentId INT, " _
+				"ChunkIndex INT, " _
+				"ChunkText VARCHAR(4000), " _
+				"Embedding VECTOR(DOUBLE, "_..#EmbeddingDimension_"), " _
+				"EmbeddingModel VARCHAR(50), " _
+				"CreatedAt TIMESTAMP)")
+			Set tRS = tStmt.%Execute()
+			If tRS.%SQLCODE < 0 {
+				Throw ##class(%Exception.General).%New("Falha ao criar "_tTable_": "_tRS.%Message)
+			}
+		}
+	} Catch ex {
+		Set tSC = ex.AsStatus()
+	}
+	Quit tSC
+}
+
 /// Remove todas as tabelas do RAG (uso apenas em desenvolvimento/reset).
 ClassMethod DropAll() As %Status
 {

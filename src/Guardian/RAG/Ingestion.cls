@@ -84,6 +84,52 @@ ClassMethod SplitIntoChunks(pText As %String) As %DynamicArray
 	Quit tChunks
 }
 
+/// Estrategia alternativa de chunking, para a comparacao formal da
+/// secao 7 de docs/planejamento/04_FASE_3_RAG_ASSISTANT.md: janela fixa
+/// de ChunkSize caracteres com ChunkOverlap de sobreposicao, ignorando
+/// limites de paragrafo (ao contrario de SplitIntoChunks). Corta no meio
+/// de frases/paragrafos de proposito - e a hipotese "ingenua" contra a
+/// qual a estrategia em producao (paragrafo-aware) e comparada.
+ClassMethod SplitFixedWindow(pText As %String) As %DynamicArray
+{
+	Set tChunks = []
+	Set tLen = $Length(pText)
+	Set tWinStart = 1
+	While tWinStart <= tLen {
+		Set tWinEnd = $Select((tWinStart + ..#ChunkSize - 1) < tLen: tWinStart + ..#ChunkSize - 1, 1: tLen)
+		Set tChunkText = $ZStrip($Extract(pText, tWinStart, tWinEnd), "<>W")
+		If tChunkText '= "" {
+			Do tChunks.%Push(tChunkText)
+		}
+		Quit:tWinEnd=tLen
+		Set tWinStart = tWinEnd - ..#ChunkOverlap + 1
+	}
+	Quit tChunks
+}
+
+/// Grava pChunks (ja fragmentado) numa das tabelas de comparacao de
+/// chunking (ChunkParagraphCompare ou ChunkAltStrategy), referenciando um
+/// Document.ID que ja existe - compartilhado pelas duas estrategias para
+/// nao duplicar o loop de embedding+insert.
+ClassMethod IngestChunksToComparisonTable(pTableName As %String, pDocumentId As %Integer, pChunks As %DynamicArray) As %Integer
+{
+	Set tCount = 0
+	Set tIter = pChunks.%GetIterator()
+	While tIter.%GetNext(.tKey, .tChunkText) {
+		Set tVec = ##class(Guardian.RAG.GeminiClient).Embed(tChunkText)
+		Set tVecStr = ..VectorToString(tVec)
+
+		Set tInsStmt = ##class(%SQL.Statement).%New()
+		Do tInsStmt.%Prepare("INSERT INTO Guardian_RAG."_pTableName_" (DocumentId, ChunkIndex, ChunkText, Embedding, EmbeddingModel, CreatedAt) VALUES (?,?,?,TO_VECTOR(?,DOUBLE),?,?)")
+		Set tInsRS = tInsStmt.%Execute(pDocumentId, tCount, tChunkText, tVecStr, "gemini-embedding-001", $ZDATETIME($Horolog, 3))
+		If tInsRS.%SQLCODE < 0 {
+			Throw ##class(%Exception.General).%New("Falha ao inserir "_pTableName_" "_tCount_": "_tInsRS.%Message)
+		}
+		Set tCount = tCount + 1
+	}
+	Quit tCount
+}
+
 /// Ingere um documento: cria a linha em Document, quebra pText em
 /// fragmentos, gera embedding de cada um e grava em Chunk. Retorna o
 /// numero de fragmentos gravados.
@@ -132,6 +178,28 @@ ClassMethod IngestFile(pPath As %String, pSource As %String, pTitle As %String, 
 	}
 	Set tText = tFile.Read(tFile.Size)
 	Quit ..IngestDocument(pSource, pTitle, pVersion, tText)
+}
+
+/// Le pPath e ingere nas DUAS tabelas de comparacao (paragrafo e janela
+/// fixa), a partir do MESMO texto atual - garante que a comparacao seja
+/// justa (mesmo conteudo, so a estrategia de corte muda). Referencia um
+/// Document.ID que ja existe, nao cria Document novo.
+ClassMethod IngestFileForComparison(pPath As %String, pDocumentId As %Integer) As %String
+{
+	Set tFile = ##class(%Stream.FileCharacter).%New()
+	Set tSC = tFile.LinkToFile(pPath)
+	If $$$ISERR(tSC) {
+		Throw ##class(%Exception.StatusException).CreateFromStatus(tSC)
+	}
+	Set tText = tFile.Read(tFile.Size)
+
+	Set tParaChunks = ..SplitIntoChunks(tText)
+	Set tParaCount = ..IngestChunksToComparisonTable("ChunkParagraphCompare", pDocumentId, tParaChunks)
+
+	Set tFixedChunks = ..SplitFixedWindow(tText)
+	Set tFixedCount = ..IngestChunksToComparisonTable("ChunkAltStrategy", pDocumentId, tFixedChunks)
+
+	Quit "paragraph="_tParaCount_" fixedWindow="_tFixedCount
 }
 
 }
