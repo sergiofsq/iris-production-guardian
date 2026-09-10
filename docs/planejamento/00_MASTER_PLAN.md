@@ -179,6 +179,15 @@ presumir 23h59 (herdado do contexto, ainda aberto).
   corretamente, cruzou com o achado interno do projeto sobre o mesmo
   tema, e absteve-se honestamente da parte que o artigo (Parte 1 de uma
   série) não cobria. Ver `04_FASE_3_RAG_ASSISTANT.md` §8.
+- **10/09/2026** — Investigator testado contra os outros dois hosts da
+  Production (`FileIncidentService`, `IncidentRouterProcess`), mesmo
+  histórico real da Fase 1. `FileIncidentService` pegou um **503 real**
+  do Gemini durante o teste — confirmou ao vivo que a evidência continua
+  disponível mesmo com o modelo indisponível. `IncidentRouterProcess`
+  saiu `healthy` (diferente do `FileOutputOperation`, que estava
+  `unavailable`) e teve análise completa gerada corretamente. Os três
+  hosts da Production agora testados. Ver
+  `05_FASE_4_AI_INVESTIGATOR_INTEGRATEDML_API.md` §6.1.
 
 ## 5. Registro de pendências (VERIFY_REQUIRED)
 
@@ -244,12 +253,16 @@ erro pontual, excluído a pedido direto do proprietário.
 
 ## 8. Próximo passo imediato
 
-Fases 0-4 todas com a versão principal (não-bônus) concluída e testada
-em 10/09/2026. AI Incident Investigator (Fase 4) implementado e validado
-contra o cenário real de falha da Fase 1 — falta validação visual da
-página pelo proprietário. Depois disso, decidir entre: Fase 5
-(hardening, testes formais, gravação do vídeo, artigo — ainda não
-iniciada), mais bônus opcionais (API pública, multimodelo, mais
-componentes testados no Investigator), ou revisitar a decisão de
-provedor de IA (Gemini free tier segue instável, ver `04_FASE_3_RAG_ASSISTANT.md` §6
-para o timeout real observado durante os testes da Fase 4).
+Fases 0-4 completas, validadas e reforçadas em 10/09/2026: série
+temporal + host travado no Monitor, conjunto de avaliação + calibração +
+comparação de chunking no RAG, corpus ampliado (5→9 docs, incluindo
+documentação pública real), e Investigator testado nos três hosts da
+Production (incluindo um 503 real do Gemini tratado com resiliência).
+Pendências que restam: IntegratedML (bloqueado, VR-003), API pública
+(bônus, não iniciada), multimodelo (bônus, não iniciada), decisão de
+provedor de IA (Gemini free tier segue instável — vários timeouts/503
+reais observados ao longo dos testes de 10/09), horário/fuso da
+submissão e interpretação do teto de bônus (ambos `VERIFY_REQUIRED`
+ainda abertos, dependem da organização do concurso), e a Fase 5 inteira
+(hardening, testes formais, gravação do vídeo, artigo) — ainda não
+iniciada.

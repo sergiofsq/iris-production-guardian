@@ -120,9 +120,33 @@ grande o suficiente para cobrir os dados de 09/09/2026):
 - Investigação persistida em `Guardian_Investigator.Investigation`
   (confirmado por SQL).
 
+### 6.1 Mais componentes testados (10/09/2026)
+
+Reforço pós-Fase 4: os outros dois hosts da Production, mesmo histórico
+real, mesma janela grande.
+
+- **`Guardian.Service.FileIncidentService`**: a API do Gemini retornou
+  um **503 real** ("This model is currently experiencing high demand")
+  durante o teste — não simulado. `modelAvailable=0`, mas os 10 eventos
+  reais da janela continuaram disponíveis na evidência, confirmando ao
+  vivo (não só em teoria) o requisito do aceite: "indisponibilidade do
+  modelo não impede consultar as evidências".
+- **`Guardian.Process.IncidentRouterProcess`**: saúde atual `healthy`
+  (diferente do `FileOutputOperation`, que estava `unavailable` — o
+  Investigator reporta o estado real de cada componente, não um valor
+  fixo). 20 eventos recuperados, incluindo as 2 falhas reais que passam
+  por este host antes de chegar na Operation. Análise separou
+  observação de hipótese corretamente e sinalizou como lacuna real a
+  ausência de log de sistema operacional para confirmar a causa exata
+  da falha de permissão.
+
+Com os três hosts da Production testados (Service, Process, Operation),
+o Investigator tem evidência de funcionar corretamente tanto no caminho
+feliz (análise gerada) quanto no caminho de falha do próprio modelo de
+IA (evidência preservada, análise não gerada) — os dois comportamentos
+que o aceite exige.
+
 ## 7. Pendente
 
 - IntegratedML: bloqueado (VR-003), fora do escopo do MVP.
 - API pública adequada (bônus): não iniciada.
-- Conjunto de teste maior para o Investigator (mais componentes, mais
-  cenários de falha) — só o `FileOutputOperation` foi testado até aqui.
