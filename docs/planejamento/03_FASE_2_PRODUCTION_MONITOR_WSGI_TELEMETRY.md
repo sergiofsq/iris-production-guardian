@@ -142,19 +142,59 @@ mostrada como recuperada instantaneamente sem base real.
 
 ## 6. Limitações explícitas desta v1 (não escondidas)
 
-- **Sem série temporal persistida.** O cálculo é feito sob demanda a cada
-  requisição (pull), não há um coletor agendado gravando amostras ao longo
-  do tempo. "Horário da última coleta" = horário da requisição atual. Uma
-  série temporal real (gráfico de tendência) fica para um incremento
-  futuro, se houver tempo.
-- **Detecção de host travado** não coberta (ver seção 2) — a saúde é
-  inferida do tráfego de mensagens, não do processo do sistema
-  operacional.
 - **"Degraded" persiste por até 15 minutos após um erro já resolvido**
   (janela documentada na seção 3/5) — decisão consciente, não bug; evita
   que um problema recente pareça "resolvido" cedo demais.
 - Sem autenticação de sessão de usuário final além da autenticação básica
   do IRIS já usada no restante do projeto.
+- Sem coletor agendado independente (ver seção 6.1) — a série temporal só
+  cresce quando alguém carrega a página ou chama a API.
+
+## 6.1 Série temporal persistida + detecção de host travado (10/09/2026)
+
+Reforço pós-Fase 4: as duas limitações da seção 6 original ("sem série
+temporal", "detecção de host travado não coberta") foram fechadas.
+
+- **`Guardian.Monitor.Schema`** — DDL de `Guardian_Monitor.HealthSample`
+  (Component, Health, QueueCount, MessageCount, RecentErrorCount,
+  CollectedAt), mesmo padrão das demais tabelas do projeto.
+- **`Guardian.Monitor.StatusCollector.Collect`** agora grava uma amostra
+  por host a cada chamada — ou seja, toda vez que a página do Monitor é
+  carregada (atualiza sozinha a cada 10s) ou a API REST é chamada, uma
+  amostra real é persistida. Não há coletor agendado (`Task Scheduler`)
+  independente nesta v1 — a série cresce por uso real da aplicação, não
+  por um cron simulado.
+- **`Guardian.Monitor.StatusCollector.IsStuck(component)`** — um host é
+  "travado" se as últimas 3 amostras persistidas têm fila positiva e
+  não-decrescente ao longo do tempo (a fila não está esvaziando).
+  Insuficiência de histórico (< 3 amostras) retorna falso, não presume
+  travamento sem dado real. Testado com 4 cenários de dados controlados:
+  fila crescendo 3/5/7 (travado = verdadeiro), fila esvaziando 7/3/0
+  (travado = falso), sem histórico (falso), só 2 amostras mesmo
+  crescendo (falso, dado insuficiente).
+- **`Guardian.Monitor.StatusCollector.RecentSamples`** — últimas N
+  amostras de um componente, em ordem cronológica, usada pela página para
+  exibir a tendência da fila.
+- **`Guardian.UI.MonitorPage`** — cada card agora mostra um selo
+  "travado" quando aplicável e uma linha de tendência com os últimos
+  valores de fila.
+- **Bug real encontrado e corrigido**: a primeira versão ordenava as
+  amostras por `CollectedAt DESC`, mas `$ZDATETIME($Horolog,3)` só tem
+  granularidade de 1 segundo — amostras inseridas na mesma janela de 1s
+  (reproduzido testando com inserts em sequência rápida) empatavam e
+  saíam fora de ordem, quebrando a detecção. Corrigido ordenando por `ID`
+  (ordem real de inserção) em vez de `CollectedAt`.
+- **Achado real, não escondido**: tentei reproduzir "travado" ao vivo
+  reusando o experimento de falha da Fase 1 (permissão negada no
+  destino) — não funcionou como esperado. Esse tipo de falha (escrita
+  recusada pelo SO) gera um erro rápido depois do `FailureTimeout` de 15s,
+  não um acúmulo de fila sustentado; `Ens.Queue.GetCount` não mostra a
+  mensagem "presa" durante a tentativa/retry. Ou seja, a detecção de
+  "travado" cobre um modo de falha **diferente** do já demonstrado
+  (backlog de fila real, ex. um host desabilitado ou destino lento sem
+  timeout) — validado com dados controlados (acima), não com uma
+  reprodução ao vivo desse modo de falha específico, que fica como
+  trabalho futuro se fizer sentido para o vídeo.
 
 ## 7. Validação visual (09/09/2026) — confirmada
 
@@ -165,9 +205,8 @@ aparecem **DEGRADED** (âmbar) — exatamente o estado esperado, ainda dentro
 da janela de 15 min do erro de teste da seção 5. Aprovado pelo
 proprietário.
 
-**Estado da Fase 2: primeira versão funcional concluída.** Série temporal
-persistida e detecção de host travado ficam como melhoria futura (seção
-6), não bloqueiam o avanço do MVP.
+**Estado da Fase 2: concluída, incluindo o reforço de série temporal e
+detecção de host travado (seção 6.1, 10/09/2026).**
 
 ## 8. Próximo passo
 

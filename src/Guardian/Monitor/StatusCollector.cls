@@ -18,6 +18,12 @@ Parameter Production = "Guardian.Production.GuardianProduction";
 /// durante o desenvolvimento desta classe.
 Parameter ErrorWindowSeconds = 900;
 
+/// Quantas amostras consecutivas (incluindo a atual) precisam ter fila
+/// positiva e nao-decrescente para o host ser marcado como "travado" -
+/// ver StuckWindow abaixo. Reforco de 10/09/2026 (serie temporal
+/// persistida), ver docs/planejamento/03_FASE_2_PRODUCTION_MONITOR_WSGI_TELEMETRY.md.
+Parameter StuckWindow = 3;
+
 /// Retorna um %DynamicObject com o estado da Production e de cada host.
 ClassMethod Collect() As %DynamicObject
 {
@@ -109,6 +115,22 @@ ClassMethod Collect() As %DynamicObject
 			Set tHealth = "healthy"
 		}
 
+		// Persiste a amostra para a serie temporal (reforco de 10/09/2026) -
+		// isolado em Try/Catch: falha ao gravar a amostra nao pode derrubar
+		// a exibicao do estado atual, mesma filosofia de resiliencia ja
+		// usada no RAG e no Investigator.
+		Try {
+			Set tInsStmt = ##class(%SQL.Statement).%New()
+			Do tInsStmt.%Prepare(
+				"INSERT INTO Guardian_Monitor.HealthSample " _
+				"(Component, Health, QueueCount, MessageCount, RecentErrorCount, CollectedAt) " _
+				"VALUES (?, ?, ?, ?, ?, ?)")
+			Do tInsStmt.%Execute(tName, tHealth, tQueueCount, tMessageCount, tRecentErrorCount, $ZDATETIME($Horolog, 3))
+		} Catch ex {
+		}
+
+		Set tStuck = ..IsStuck(tName)
+
 		Set tHost = {}
 		Set tHost.name = tName
 		Set tHost.className = tClassName
@@ -118,6 +140,7 @@ ClassMethod Collect() As %DynamicObject
 		Set tHost.messageCount = tMessageCount
 		Set tHost.recentErrorCount = tRecentErrorCount
 		Set tHost.health = tHealth
+		Set tHost.stuck = tStuck
 		Do tHosts.%Push(tHost)
 	}
 
@@ -125,6 +148,83 @@ ClassMethod Collect() As %DynamicObject
 	Set tResult.errorWindowSeconds = ..#ErrorWindowSeconds
 
 	Quit tResult
+}
+
+/// Um host esta "travado" se as ultimas StuckWindow amostras persistidas
+/// (mais recente incluida) tem fila positiva e nao-decrescente ao longo
+/// do tempo - ou seja, a fila nao esta esvaziando, nao e so uma foto de
+/// um instante com fila > 0. Com menos amostras que StuckWindow ainda
+/// nao ha historico suficiente, entao retorna falso (nao presumir
+/// travamento sem dado real). Ordena por ID (ordem real de insercao), nao
+/// por CollectedAt - $ZDATETIME($Horolog,3) so tem granularidade de 1
+/// segundo, entao amostras inseridas na mesma janela de 1s (ex. num
+/// teste automatizado, ou paginas carregadas rapido em sequencia) podiam
+/// empatar em CollectedAt e sair fora de ordem - bug real encontrado
+/// testando com dados controlados em 10/09/2026. Metodo proprio (nao
+/// inline em Collect) para poder testar o algoritmo isoladamente.
+ClassMethod IsStuck(pComponent As %String) As %Boolean
+{
+	Set tStuck = 0
+	Try {
+		Set tTrendStmt = ##class(%SQL.Statement).%New()
+		Do tTrendStmt.%Prepare(
+			"SELECT TOP "_..#StuckWindow_" QueueCount FROM Guardian_Monitor.HealthSample " _
+			"WHERE Component = ? ORDER BY ID DESC")
+		Set tTrendRS = tTrendStmt.%Execute(pComponent)
+		Set tN = 0, tAllPositive = 1, tNonDecreasing = 1, tPrev = ""
+		While tTrendRS.%Next() {
+			Set tN = tN + 1
+			Set tQ = +tTrendRS.%Get("QueueCount")
+			If tQ <= 0 {
+				Set tAllPositive = 0
+			}
+			If (tPrev '= "") && (tQ > tPrev) {
+				// tPrev e a amostra mais recente que esta (percorrendo
+				// DESC); um valor MAIOR que o anterior nesta ordem
+				// significa que a fila estava crescendo indo para o
+				// passado, ou seja, caindo com o tempo - fila esvaziando.
+				Set tNonDecreasing = 0
+			}
+			Set tPrev = tQ
+		}
+		If (tN >= ..#StuckWindow) && tAllPositive && tNonDecreasing {
+			Set tStuck = 1
+		}
+	} Catch ex {
+	}
+	Quit tStuck
+}
+
+/// Ultimas pLimit amostras de Component, mais antiga primeiro (para
+/// exibir uma tendencia cronologica). Retorna um %DynamicObject (array
+/// de {health, queueCount, messageCount, recentErrorCount, collectedAt}).
+ClassMethod RecentSamples(pComponent As %String, pLimit As %Integer = 10) As %DynamicObject
+{
+	Set tSamples = []
+	Set tStmt = ##class(%SQL.Statement).%New()
+	Do tStmt.%Prepare(
+		"SELECT TOP ? Health, QueueCount, MessageCount, RecentErrorCount, CollectedAt " _
+		"FROM Guardian_Monitor.HealthSample WHERE Component = ? ORDER BY ID DESC")
+	Set tRS = tStmt.%Execute(pLimit, pComponent)
+	Set tRows = 0
+	While tRS.%Next() {
+		Set tRows = tRows + 1
+		Set tS = {}
+		Set tS.health = tRS.%Get("Health")
+		Set tS.queueCount = tRS.%Get("QueueCount")
+		Set tS.messageCount = tRS.%Get("MessageCount")
+		Set tS.recentErrorCount = tRS.%Get("RecentErrorCount")
+		Set tS.collectedAt = tRS.%Get("CollectedAt")
+		Do tSamples.%Push(tS)
+	}
+	// Veio mais recente->mais antigo (ORDER BY DESC); inverte para
+	// cronologico (mais antigo->mais recente), mais natural para exibir
+	// uma tendencia.
+	Set tChrono = []
+	For tI = tSamples.%Size():-1:1 {
+		Do tChrono.%Push(tSamples.%Get(tI-1))
+	}
+	Quit tChrono
 }
 
 }

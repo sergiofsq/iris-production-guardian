@@ -44,6 +44,8 @@ ClassMethod OnPage() As %Status
 	.badge.unavailable { background: color-mix(in srgb, var(--ig-status-down) 15%, white); color: var(--ig-status-down); }
 	.badge.unknown { background: color-mix(in srgb, var(--ig-status-unknown) 18%, white); color: var(--ig-status-unknown); }
 	.stats { font-size: 0.8rem; color: var(--ig-text-muted); margin-top: 0.5rem; }
+	.trend { font-size: 0.75rem; color: var(--ig-text-muted); margin-top: 0.35rem; font-family: var(--ig-font-mono); }
+	.badge.stuck { background: color-mix(in srgb, var(--ig-status-down) 15%, white); color: var(--ig-status-down); margin-left: 0.35rem; }
 	.empty { color: var(--ig-text-muted); font-size: 0.85rem; font-style: italic; }
 	.demo-note { margin-top: 2rem; font-size: 0.75rem; color: var(--ig-on-bg-muted); border-top: 1px solid rgba(255,255,255,0.2); padding-top: 1rem; }
 </style>
@@ -83,13 +85,25 @@ ClassMethod OnPage() As %Status
 				Set tHealth = tHost.health
 				&html<<div class="card #(tHealth)#">
 	<div class="name">#(tHost.name)#</div>
-	<span class="badge #(tHealth)#">#(tHealth)#</span>
-	<div class="stats">
+	<span class="badge #(tHealth)#">#(tHealth)#</span>>
+				If tHost.stuck {
+					&html<<span class="badge stuck">travado</span>>
+				}
+				&html<<div class="stats">
 		Fila: #(tHost.queueCount)# &middot;
 		Mensagens: #(tHost.messageCount)# &middot;
 		Erros recentes: #(tHost.recentErrorCount)#
-	</div>
-</div>>
+	</div>>
+				Set tTrend = ##class(Guardian.Monitor.StatusCollector).RecentSamples(tHost.name, 10)
+				If tTrend.%Size() > 1 {
+					Set tTrendStr = ""
+					Set tTrendIter = tTrend.%GetIterator()
+					While tTrendIter.%GetNext(.tTrendKey, .tSample) {
+						Set tTrendStr = tTrendStr _ $Select(tTrendStr'="":", ", 1:"") _ tSample.queueCount
+					}
+					&html<<div class="trend">tendência de fila (#(tTrend.%Size())# amostras): #(tTrendStr)#</div>>
+				}
+				&html<</div>>
 			}
 		}
 		If tCount = 0 {
@@ -103,8 +117,10 @@ ClassMethod OnPage() As %Status
 	Estados: <strong>healthy</strong> = sem fila pendente e sem erro recente &middot;
 	<strong>degraded</strong> = fila pendente ou erro nos ultimos #(tData.errorWindowSeconds)# segundos &middot;
 	<strong>unavailable</strong> = host desabilitado ou Production parada &middot;
-	<strong>unknown</strong> = nenhuma mensagem registrada ainda para este host (ausencia de dado nao e saude).
-	Sem serie temporal persistida nesta v1 - calculo sob demanda a cada carregamento.
+	<strong>unknown</strong> = nenhuma mensagem registrada ainda para este host (ausencia de dado nao e saude) &middot;
+	<strong>travado</strong> = fila positiva e sem esvaziar nas ultimas 3 amostras persistidas.
+	Serie temporal persistida a cada carregamento desta pagina ou chamada da API (/api/guardian/status) -
+	sem coletor agendado independente nesta v1.
 </div>
 </main>
 </body>
