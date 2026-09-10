@@ -1,7 +1,7 @@
 /// Logica compartilhada de coleta de estado da Production (Fase 2).
 /// Chamada tanto pelo REST (Guardian.API.MonitorAPI) quanto pela pagina
 /// HTML (Guardian.UI.MonitorPage) - uma unica implementacao das regras de
-/// saude, documentadas em 03_FASE_2_PRODUCTION_MONITOR_WSGI_TELEMETRY.md
+/// saude, documentadas em docs/planejamento/03_FASE_2_PRODUCTION_MONITOR_WSGI_TELEMETRY.md
 /// secao 3. Nao ha logica de negocio duplicada no navegador nem na pagina.
 Class Guardian.Monitor.StatusCollector Extends %RegisteredObject
 {
@@ -98,7 +98,7 @@ ClassMethod Collect() As %DynamicObject
 		Do tErrRS.%Next()
 		Set tRecentErrorCount = +tErrRS.%Get("N")
 
-		// Regras de saude - ver 03_FASE_2_PRODUCTION_MONITOR_WSGI_TELEMETRY.md secao 3
+		// Regras de saude - ver docs/planejamento/03_FASE_2_PRODUCTION_MONITOR_WSGI_TELEMETRY.md secao 3
 		If ('tProdRunning) || ('tEnabled) {
 			Set tHealth = "unavailable"
 		} ElseIf (tMessageCount = 0) {

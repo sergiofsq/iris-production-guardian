@@ -26,7 +26,7 @@ repositório neste projeto — usar `intersystems/iris-community:latest-cd`.
 ## 2. Container e persistência
 
 - Container: `iris-guardian`.
-- Portas publicadas: `1972` (SuperServer), `52773` (webserver/Management Portal).
+- Portas publicadas: `51972` (SuperServer, host→1972 no container), `53773` (webserver/Management Portal, host→52773 no container) — remapeadas em 10/09/2026 para não colidir com Cache/Ensemble/IRIS já em uso em outra VM (`1972`, `57772`, `57773`).
 - Volume nomeado `iris-guardian-data`, montado em `/durable`, com
   `ISC_DATA_DIRECTORY=/durable` → dados sobrevivem a `docker rm`.
 - **Achado não presumido:** um volume Docker nomeado recém-criado pertence a

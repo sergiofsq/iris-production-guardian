@@ -7,7 +7,7 @@ Class Guardian.RAG.Schema Extends %RegisteredObject
 {
 
 /// Dimensao dos embeddings - ver justificativa em
-/// 04_FASE_3_RAG_ASSISTANT.md secao 3.
+/// docs/planejamento/04_FASE_3_RAG_ASSISTANT.md secao 3.
 Parameter EmbeddingDimension = 768;
 
 /// Cria as tabelas do RAG se ainda nao existirem. Idempotente.

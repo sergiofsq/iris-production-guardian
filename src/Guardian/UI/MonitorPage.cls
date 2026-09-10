@@ -17,32 +17,47 @@ ClassMethod OnPage() As %Status
 <meta charset="utf-8">
 <meta http-equiv="refresh" content="10">
 <title>IRIS Production Guardian - Monitor</title>
+<link rel="stylesheet" href="/csp/guardian/assets/css/iris-guardian-theme.css">
 <style>
-	body { font-family: -apple-system, Segoe UI, Roboto, sans-serif; background: #0a1965; color: #eef1ff; margin: 0; padding: 2rem; }
-	h1 { color: #0fd1c4; font-size: 1.5rem; margin-bottom: 0.25rem; }
-	.meta { color: #9aa4d6; font-size: 0.85rem; margin-bottom: 1.5rem; }
-	.meta strong { color: #eef1ff; }
+	.ig-page-header { display: flex; align-items: center; gap: 1.5rem; padding: 0.75rem 1.5rem; background: var(--ig-bg-strong); }
+	.ig-logo-badge { background: var(--ig-white); border-radius: var(--ig-radius-sm); padding: 0.35rem 0.75rem; box-shadow: var(--ig-shadow); display: flex; }
+	.ig-logo-badge img { height: 60px; width: auto; display: block; }
+	.ig-page-header nav { display: flex; gap: 1.25rem; margin-left: auto; }
+	.ig-page-header nav a { color: var(--ig-on-bg-muted); text-decoration: none; font-size: 0.85rem; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; padding-bottom: 2px; }
+	.ig-page-header nav a:hover, .ig-page-header nav a[aria-current="page"] { color: var(--ig-on-bg-text); border-bottom: 2px solid var(--ig-teal-500); }
+	main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+	h1 { color: var(--ig-on-bg-text); font-size: 1.4rem; margin-bottom: 0.25rem; }
+	.meta { color: var(--ig-on-bg-muted); font-size: 0.85rem; margin-bottom: 1.5rem; }
+	.meta strong { color: var(--ig-on-bg-text); }
 	.columns { display: flex; gap: 1.5rem; flex-wrap: wrap; }
 	.column { flex: 1; min-width: 260px; }
-	.column h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: 0.05em; color: #9aa4d6; border-bottom: 1px solid #23306b; padding-bottom: 0.5rem; }
-	.card { background: #102f8b; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; border-left: 4px solid #555; }
-	.card.healthy { border-left-color: #2ecc71; }
-	.card.degraded { border-left-color: #f1c40f; }
-	.card.unavailable { border-left-color: #e74c3c; }
-	.card.unknown { border-left-color: #7f8c8d; }
-	.card .name { font-weight: 600; font-size: 0.95rem; word-break: break-all; }
-	.badge { display: inline-block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 0.15rem 0.5rem; border-radius: 999px; margin-top: 0.4rem; }
-	.badge.healthy { background: #1e5c3a; color: #6ee7a0; }
-	.badge.degraded { background: #6b5a12; color: #ffe27a; }
-	.badge.unavailable { background: #6b2020; color: #ff9a9a; }
-	.badge.unknown { background: #3a3a3a; color: #c9c9c9; }
-	.stats { font-size: 0.8rem; color: #b7bde8; margin-top: 0.5rem; }
-	.empty { color: #6f7ac0; font-size: 0.85rem; font-style: italic; }
-	.demo-note { margin-top: 2rem; font-size: 0.75rem; color: #6f7ac0; border-top: 1px solid #23306b; padding-top: 1rem; }
+	.column h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ig-on-bg-muted); border-bottom: 1px solid rgba(255,255,255,0.25); padding-bottom: 0.5rem; }
+	.card { background: var(--ig-surface); border: 1px solid var(--ig-border); box-shadow: var(--ig-shadow); border-radius: var(--ig-radius-sm); padding: 1rem; margin-bottom: 0.75rem; border-left: 4px solid var(--ig-status-unknown); }
+	.card.healthy { border-left-color: var(--ig-status-healthy); }
+	.card.degraded { border-left-color: var(--ig-status-degraded); }
+	.card.unavailable { border-left-color: var(--ig-status-down); }
+	.card.unknown { border-left-color: var(--ig-status-unknown); }
+	.card .name { font-weight: 600; font-size: 0.95rem; word-break: break-all; color: var(--ig-text); }
+	.badge { display: inline-block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 0.15rem 0.5rem; border-radius: 999px; margin-top: 0.4rem; font-weight: 600; }
+	.badge.healthy { background: color-mix(in srgb, var(--ig-status-healthy) 15%, white); color: var(--ig-status-healthy); }
+	.badge.degraded { background: color-mix(in srgb, var(--ig-status-degraded) 18%, white); color: var(--ig-status-degraded); }
+	.badge.unavailable { background: color-mix(in srgb, var(--ig-status-down) 15%, white); color: var(--ig-status-down); }
+	.badge.unknown { background: color-mix(in srgb, var(--ig-status-unknown) 18%, white); color: var(--ig-status-unknown); }
+	.stats { font-size: 0.8rem; color: var(--ig-text-muted); margin-top: 0.5rem; }
+	.empty { color: var(--ig-text-muted); font-size: 0.85rem; font-style: italic; }
+	.demo-note { margin-top: 2rem; font-size: 0.75rem; color: var(--ig-on-bg-muted); border-top: 1px solid rgba(255,255,255,0.2); padding-top: 1rem; }
 </style>
 </head>
 <body>
-<h1>IRIS Production Guardian &mdash; Production Monitor</h1>
+<header class="ig-page-header">
+	<div class="ig-logo-badge"><img src="/csp/guardian/iris-guardian-logo-header.png" alt="IRIS Guardian"></div>
+	<nav>
+		<a href="Guardian.UI.MonitorPage.cls" aria-current="page">Monitor</a>
+		<a href="Guardian.UI.RAGPage.cls">RAG Assistant</a>
+	</nav>
+</header>
+<main>
+<h1>Production Monitor</h1>
 <div class="meta">
 	Production: <strong>#(tData.production)#</strong> &middot;
 	Estado: <strong>#(tData.productionState)#</strong> &middot;
@@ -90,6 +105,7 @@ ClassMethod OnPage() As %Status
 	<strong>unknown</strong> = nenhuma mensagem registrada ainda para este host (ausencia de dado nao e saude).
 	Sem serie temporal persistida nesta v1 - calculo sob demanda a cada carregamento.
 </div>
+</main>
 </body>
 </html>>
 

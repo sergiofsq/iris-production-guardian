@@ -1,7 +1,7 @@
 /// Ingestao de documentos no RAG Assistant (Fase 3): chunking + embedding
 /// (Guardian.RAG.GeminiClient) + armazenamento (Guardian_RAG.Document /
 /// Guardian_RAG.Chunk). Estrategia de chunking documentada em
-/// 04_FASE_3_RAG_ASSISTANT.md secao 3.2.
+/// docs/planejamento/04_FASE_3_RAG_ASSISTANT.md secao 3.2.
 Class Guardian.RAG.Ingestion Extends %RegisteredObject
 {
 

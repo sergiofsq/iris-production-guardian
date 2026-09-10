@@ -35,7 +35,7 @@ ClassMethod NewRequest() As %Net.HttpRequest
 }
 
 /// Retorna um %DynamicArray com os valores do embedding de pText.
-/// pDimension: ver justificativa em 04_FASE_3_RAG_ASSISTANT.md secao 3.
+/// pDimension: ver justificativa em docs/planejamento/04_FASE_3_RAG_ASSISTANT.md secao 3.
 ClassMethod Embed(pText As %String, pDimension As %Integer = 768) As %DynamicArray
 {
 	Set tHttp = ..NewRequest()

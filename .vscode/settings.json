@@ -2,13 +2,16 @@
   "objectscript.conn": {
     "active": true,
     "host": "localhost",
-    "port": 52773,
-    "ns": "GUARDIAN",
+    "port": 53773,
+    "ns": "%SYS",
     "username": "guardian",
     "https": false,
     "server": "guardian-local"
   },
   "files.exclude": {
     "**/.DS_Store": true
+  },
+  "intersystems.servers": {
+
   }
 }

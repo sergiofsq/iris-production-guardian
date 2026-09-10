@@ -18,10 +18,20 @@
   --ig-teal-300: #6de9df;
   --ig-purple-600: #3a2fb5;
 
-  /* Neutros */
+  /* Neutros e "chrome" da aplicacao (fundo/header): azul medio deliberado -
+     nem o vivido original (#0a1965 puro), nem branco estourado. Paleta
+     unica e fixa (sem depender de prefers-color-scheme), para nao variar
+     de forma imprevisivel com o modo claro/escuro do sistema operacional
+     do usuario - decisao de 10/09/2026 apos o primeiro fundo ter ficado
+     "vivo" demais e a tentativa seguinte, dependente de dark-mode do SO,
+     ter ficado com contraste ruim (texto escuro sobre fundo escuro). */
   --ig-white: #ffffff;
-  --ig-bg: #f6f8fb;
+  --ig-bg: #3f63a8;
+  --ig-bg-strong: #2f4d85;
+  --ig-on-bg-text: #f3f6fc;
+  --ig-on-bg-muted: #c7d3ec;
   --ig-surface: #ffffff;
+  --ig-tint: #f0f3f9;
   --ig-border: #e2e8f0;
   --ig-text: #1a2035;
   --ig-text-muted: #5b6478;
@@ -44,16 +54,6 @@
   --ig-shadow: 0 1px 2px rgba(10, 25, 101, 0.06), 0 4px 16px rgba(10, 25, 101, 0.08);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --ig-bg: #0b1024;
-    --ig-surface: #121936;
-    --ig-border: #232c4d;
-    --ig-text: #eef1fa;
-    --ig-text-muted: #9aa3bd;
-  }
-}
-
 * {
   box-sizing: border-box;
 }
@@ -61,7 +61,7 @@
 body {
   margin: 0;
   background: var(--ig-bg);
-  color: var(--ig-text);
+  color: var(--ig-on-bg-text);
   font-family: var(--ig-font-sans);
   line-height: 1.5;
 }

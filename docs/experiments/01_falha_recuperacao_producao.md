@@ -5,7 +5,7 @@
 > proposto" do Production Monitor) e pelo roteiro de vídeo (seção 8). Todos
 > os comandos abaixo já foram executados uma vez em 09/09/2026 e o
 > resultado real de cada um está registrado em
-> `../../02_FASE_1_PYPROD_INTEROPERABILITY.md` §5. Este arquivo é o roteiro
+> `../planejamento/02_FASE_1_PYPROD_INTEROPERABILITY.md` §5. Este arquivo é o roteiro
 > para **reproduzir** o mesmo experimento ao vivo, na hora da gravação.
 
 ## Pré-requisitos
@@ -28,7 +28,7 @@ docker exec -i iris-guardian sh -c \
 ```
 
 (Opcional para a gravação: abrir a tela do **Message Viewer**
-(`http://localhost:52773/csp/.../interop-editor/...` → aba "Message
+(`http://localhost:53773/csp/.../interop-editor/...` → aba "Message
 Viewer") e a pasta `/durable/guardian/out` em outra janela, para mostrar
 ao vivo o antes/depois.)
 

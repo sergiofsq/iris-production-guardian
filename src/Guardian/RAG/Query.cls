@@ -13,7 +13,7 @@ Parameter TopK = 5;
 /// IntegratedML nao funciona") = 0.653; pergunta irrelevante ("receita de
 /// bolo de chocolate") = 0.518 (ficaria acima de 0.5, passando pelo
 /// filtro). Ainda uma heuristica com poucos pontos, nao um limiar
-/// validado estatisticamente - ver 04_FASE_3_RAG_ASSISTANT.md secao 5
+/// validado estatisticamente - ver docs/planejamento/04_FASE_3_RAG_ASSISTANT.md secao 5
 /// para o plano de calibracao com um conjunto de avaliacao maior.
 Parameter MinSimilarity = 0.58;
 

@@ -16,7 +16,7 @@
   Community embutida expirou e a instância recusa iniciar
   (`Invalid Community Edition license, may have exceeded core limit`).
   Não usar esse repositório neste projeto.
-- Container: `iris-guardian`, portas `1972` (SuperServer) e `52773`
+- Container: `iris-guardian`, portas `51972` (SuperServer, host→1972 no container) e `53773` (webserver, host→52773 no container) — alteradas em 10/09/2026 para não colidir com Cache/Ensemble/IRIS de outra VM (`1972`, `57772`, `57773`)
   (webserver), volume nomeado `iris-guardian-data` montado em `/durable`
   com `ISC_DATA_DIRECTORY=/durable` (durable %SYS — dados sobrevivem a
   `docker rm`). Usuário de teste: `demo`.

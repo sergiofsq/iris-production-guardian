@@ -67,7 +67,7 @@ presumir 23h59 (herdado do contexto, ainda aberto).
   administrativo dedicado do projeto criado (credencial fora do Git).
 - **09/09/2026** — Ambiente de desenvolvimento configurado: VS Code +
   extensão InterSystems ObjectScript, servidor nomeado `guardian-local`
-  (Basic auth, HTTP, porta 52773), compilação automática ao salvar em
+  (Basic auth, HTTP, porta 53773), compilação automática ao salvar em
   `src/`. Ver `.vscode/settings.json`.
 - **09/09/2026** — Fase 1 iniciada: Production
   `Guardian.Production.GuardianProduction` implementada (Service → Process
@@ -115,6 +115,24 @@ presumir 23h59 (herdado do contexto, ainda aberto).
   `%Get`), falso alarme de encoding (bug era só exibição de terminal,
   confirmado por hexdump), e tratamento de indisponibilidade real da API
   (503) sem derrubar a página. Ver `04_FASE_3_RAG_ASSISTANT.md`.
+- **10/09/2026** — Validação visual do RAG Assistant pelo proprietário:
+  aprovada, com dois ajustes. (1) Fundo azul vivo demais na primeira
+  versão — corrigido para um azul médio deliberado (`#3f63a8` corpo,
+  `#2f4d85` cabeçalho), cartões de conteúdo em branco para legibilidade.
+  (2) Logo do produto ausente — inserida (recorte sem a tag-line,
+  `assets/iris-guardian-logo-header.png`) em um "selo" branco no
+  cabeçalho. Achado durante o ajuste: o tema tinha um modo escuro
+  automático (`prefers-color-scheme: dark`) que reagia ao SO do usuário
+  sem que todos os elementos (links de navegação) tivessem cor adaptada —
+  texto escuro sobre fundo escuro, contraste ruim. Removido; paleta única
+  e fixa daqui em diante, ver `assets/css/iris-guardian-theme.css`. Mesma
+  correção aplicada ao `Guardian.UI.MonitorPage` para consistência visual
+  entre os dois módulos (ambos agora referenciam o tema compartilhado, que
+  antes existia mas nunca era de fato carregado pelas páginas). Logo
+  servida como arquivo estático em `/durable/csp/guardian/` (diretório
+  físico da aplicação CSP `/csp/guardian/`) via `docker cp` — não faz
+  parte do volume versionado no Git, reproduzir o `docker cp` após
+  recriar o container.
 
 ## 5. Registro de pendências (VERIFY_REQUIRED)
 
@@ -145,16 +163,20 @@ cada fase.
 ## 7. Estrutura de arquivos de entrega
 
 Organização adotada para a submissão (Open Exchange + artigo na
-comunidade), consolidada em 09/09/2026:
+comunidade), consolidada em 09/09/2026, **reorganizada em 10/09/2026**
+para não deixar nenhum arquivo solto na raiz do repositório (padrão do
+proprietário daqui em diante — não criar mais arquivos soltos na raiz).
 
 | Caminho | Conteúdo | Público/interno |
 |---|---|---|
-| `README.md` | Visão geral do projeto, instalação, como reproduzir — em inglês | Público (Open Exchange) |
-| `00_MASTER_PLAN.md` … `07_SCORECARD_EVIDENCIAS.md` | Planejamento, decisões e evidências por fase — em português | Interno (contexto de desenvolvimento, pode acompanhar o repo como transparência do processo) |
+| `README.md` | Visão geral do projeto, instalação, como reproduzir — em inglês | Público (Open Exchange). Fica na raiz por convenção de ferramenta (GitHub/Open Exchange só renderiza automaticamente o README na raiz) |
+| `package.json` | Metadados de tooling frontend (lint/format/dev server) | Público. Fica na raiz por convenção do npm |
+| `docs/planejamento/` (`00_MASTER_PLAN.md` … `07_SCORECARD_EVIDENCIAS.md`, `IRIS-Production-Guardian-CONVERSATION-CONTEXT.md`) | Planejamento, decisões e evidências por fase — em português | Interno (contexto de desenvolvimento, pode acompanhar o repo como transparência do processo) |
 | `docs/experiments/` | Roteiros reproduzíveis passo a passo de cada experimento controlado (falha/recuperação, futuros: carga, RAG, IntegratedML) — em português, uso direto na gravação do vídeo | Interno, mas referenciável no artigo |
 | `src/Guardian/` | Código-fonte COS (classes da Production, mensagens, hosts) | Público |
 | `assets/` | Identidade visual (logo, tokens CSS) | Público |
-| `Estudar.txt`, `Anotações para Usuário.txt`, `Imagens/` | Material pessoal de aprendizado do proprietário | **Não** entra na entrega — manter fora do commit/publicação |
+| `pessoal/` (`Estudar.txt`, `Anotações para Usuário.txt`, `Script de Apresentação V1.txt`) | Material pessoal de aprendizado/apresentação do proprietário | **Não** entra na entrega — pasta inteira no `.gitignore` |
+| `Imagens/` | Screenshots pessoais de estudo/config, **exceto** `ImagemMatriz.png` (arte-fonte do logo, ver `07_SCORECARD_EVIDENCIAS.md`) | Pasta majoritariamente pessoal, mas `ImagemMatriz.png` é rastreado no git intencionalmente — não aplicar regra de "fora do commit" a esse arquivo específico |
 
 Pendente: artigo da comunidade (português, com tags exigidas — ver
 contexto seção 5), vídeo explicativo, e o próprio conteúdo do `README.md`
@@ -163,6 +185,6 @@ contexto seção 5), vídeo explicativo, e o próprio conteúdo do `README.md`
 ## 8. Próximo passo imediato
 
 Validação visual da página do RAG Assistant pelo proprietário
-(`http://localhost:52773/csp/guardian/Guardian.UI.RAGPage.cls`). Depois,
+(`http://localhost:53773/csp/guardian/Guardian.UI.RAGPage.cls`). Depois,
 decidir entre reforçar o RAG (busca híbrida, mais corpus) ou avançar para
 a Fase 4 (AI Incident Investigator).

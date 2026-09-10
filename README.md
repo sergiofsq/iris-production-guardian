@@ -33,7 +33,7 @@ Three planned modules, built on InterSystems IRIS only:
 - Web UI: plain HTML/CSS plus the minimum browser JS needed for
   presentation; business rules stay in the COS backend.
 
-Full rationale in `IRIS-Production-Guardian-CONVERSATION-CONTEXT.md`
+Full rationale in `docs/planejamento/IRIS-Production-Guardian-CONVERSATION-CONTEXT.md`
 (Portuguese, internal planning context).
 
 ## Project status
@@ -43,7 +43,7 @@ Full rationale in `IRIS-Production-Guardian-CONVERSATION-CONTEXT.md`
 | IRIS environment (Docker, Community Edition, ARM64) | ✅ Working, documented, reproducible |
 | Vector Search (native IRIS) | ✅ Confirmed available, no extra license |
 | Foreign Table | ✅ Confirmed available, no extra license |
-| IntegratedML (AutoML provider) | ❌ Confirmed **unavailable** on this image (missing proprietary `iris_automl` Python package) — out of MVP scope, see `07_SCORECARD_EVIDENCIAS.md` |
+| IntegratedML (AutoML provider) | ❌ Confirmed **unavailable** on this image (missing proprietary `iris_automl` Python package) — out of MVP scope, see `docs/planejamento/07_SCORECARD_EVIDENCIAS.md` |
 | Production (Service → Process → Operation) | ✅ Implemented and tested end-to-end with a real message, including a controlled failure + recovery scenario |
 | Production Monitor UI | 🚧 Not started |
 | AI Incident Investigator | 🚧 Not started |
@@ -51,9 +51,9 @@ Full rationale in `IRIS-Production-Guardian-CONVERSATION-CONTEXT.md`
 | Business Rules engine | 🚧 Not started (routing is currently plain code) |
 
 Detailed, dated evidence for every item above lives in
-`07_SCORECARD_EVIDENCIAS.md` and the phase documents (`00_MASTER_PLAN.md`
-onward). Nothing in this README is claimed without a corresponding test
-that was actually run.
+`docs/planejamento/07_SCORECARD_EVIDENCIAS.md` and the phase documents
+(`docs/planejamento/00_MASTER_PLAN.md` onward). Nothing in this README is
+claimed without a corresponding test that was actually run.
 
 ## Architecture (proposed, validated incrementally)
 
@@ -74,12 +74,13 @@ Controlled demo destination
 ## Repository layout
 
 ```
-src/Guardian/            COS source (Production, hosts, messages)
-assets/                  Visual identity (logo, CSS tokens)
-docs/experiments/        Reproducible step-by-step experiment scripts
-                          (used to record the contest demo video)
-00_MASTER_PLAN.md         Phase tracking, decisions, timeline (Portuguese)
-01_..._07_...md           Per-phase setup notes and the evidence scorecard
+src/Guardian/             COS source (Production, hosts, messages)
+assets/                   Visual identity (logo, CSS tokens)
+docs/experiments/         Reproducible step-by-step experiment scripts
+                           (used to record the contest demo video)
+docs/planejamento/        Phase tracking, decisions, timeline, evidence
+                           scorecard (Portuguese) — 00_MASTER_PLAN.md
+                           onward, plus the conversation-context doc
 ```
 
 ## Running it locally
@@ -97,7 +98,7 @@ docker run --rm --user root --entrypoint chown \
   -R 51773:51773 /durable
 
 docker run -d --name iris-guardian \
-  -p 1972:1972 -p 52773:52773 \
+  -p 51972:1972 -p 53773:52773 \
   -e ISC_DATA_DIRECTORY=/durable \
   -v iris-guardian-data:/durable \
   intersystems/iris-community:latest-cd
@@ -108,7 +109,7 @@ docker run -d --name iris-guardian \
 
 ### 2. Create the namespace and an admin user
 
-Via the Management Portal (`http://localhost:52773/csp/sys/UtilHome.csp`,
+Via the Management Portal (`http://localhost:53773/csp/sys/UtilHome.csp`,
 log in as `_SYSTEM`):
 
 1. Create a dedicated administrative user (System Administration → Users).
@@ -116,13 +117,13 @@ log in as `_SYSTEM`):
    name `GUARDIAN`, new database `GUARDIANDB` for both Globals and
    Routines, **interoperability enabled**.
 
-(Step-by-step with screenshots-worthy detail: `01_FASE_0_SETUP_ARQUITETURA.md`.)
+(Step-by-step with screenshots-worthy detail: `docs/planejamento/01_FASE_0_SETUP_ARQUITETURA.md`.)
 
 ### 3. Load and start the Production
 
 Compile the classes under `src/Guardian/` into the `GUARDIAN` namespace
 (e.g. via VS Code + the InterSystems ObjectScript extension pointed at
-`localhost:52773`, namespace `GUARDIAN`), then:
+`localhost:53773`, namespace `GUARDIAN`), then:
 
 ```objectscript
 Do ##class(Ens.Director).StartProduction("Guardian.Production.GuardianProduction")
@@ -130,7 +131,20 @@ Do ##class(Ens.Director).StartProduction("Guardian.Production.GuardianProduction
 
 Or start it from Interoperability → Configure → Production in the portal.
 
-### 4. Reproduce the failure/recovery demo
+### 4. Serve the static assets (logo, CSS) used by the Monitor/RAG pages
+
+The `GUARDIAN` CSP web application serves static files straight from its
+physical directory inside the container. Copy them in once per fresh
+container (they live in the named volume, so this survives restarts, but
+not a brand-new `docker volume create`):
+
+```sh
+docker cp assets/iris-guardian-logo-header.png iris-guardian:/durable/csp/guardian/iris-guardian-logo-header.png
+docker exec iris-guardian mkdir -p /durable/csp/guardian/assets/css
+docker cp assets/css/iris-guardian-theme.css iris-guardian:/durable/csp/guardian/assets/css/iris-guardian-theme.css
+```
+
+### 5. Reproduce the failure/recovery demo
 
 Follow `docs/experiments/01_falha_recuperacao_producao.md` step by step —
 it drives the Production with real file drops, breaks the output

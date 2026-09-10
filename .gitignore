@@ -2,3 +2,7 @@
 .env
 .env.local
 node_modules/
+
+# Personal material (owner's study notes, presentation script) — never part
+# of the delivery/publication, see docs/planejamento/00_MASTER_PLAN.md §7
+pessoal/

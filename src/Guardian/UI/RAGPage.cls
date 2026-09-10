@@ -18,25 +18,40 @@ ClassMethod OnPage() As %Status
 <head>
 <meta charset="utf-8">
 <title>IRIS Production Guardian - RAG Assistant</title>
+<link rel="stylesheet" href="/csp/guardian/assets/css/iris-guardian-theme.css">
 <style>
-	body { font-family: -apple-system, Segoe UI, Roboto, sans-serif; background: #0a1965; color: #eef1ff; margin: 0; padding: 2rem; }
-	h1 { color: #0fd1c4; font-size: 1.5rem; margin-bottom: 1.5rem; }
-	form { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; max-width: 800px; }
-	input[type=text] { flex: 1; padding: 0.6rem 0.8rem; border-radius: 6px; border: 1px solid #23306b; background: #102f8b; color: #eef1ff; font-size: 1rem; }
-	button { padding: 0.6rem 1.2rem; border-radius: 6px; border: none; background: #0fd1c4; color: #0a1965; font-weight: 600; cursor: pointer; }
-	.answer-box { background: #102f8b; border-radius: 8px; padding: 1.25rem; max-width: 800px; margin-bottom: 1.5rem; border-left: 4px solid #0fd1c4; }
-	.answer-box.abstained { border-left-color: #7f8c8d; }
-	.answer-text { white-space: pre-wrap; line-height: 1.5; }
-	.sources { max-width: 800px; }
-	.source { background: #0d2470; border-radius: 6px; padding: 0.75rem 1rem; margin-bottom: 0.5rem; font-size: 0.85rem; }
-	.source .src-title { font-weight: 600; color: #9ee8e2; }
-	.source .src-sim { color: #9aa4d6; float: right; }
-	.source .src-text { color: #b7bde8; margin-top: 0.4rem; }
-	.note { font-size: 0.75rem; color: #6f7ac0; max-width: 800px; margin-top: 2rem; border-top: 1px solid #23306b; padding-top: 1rem; }
+	.ig-page-header { display: flex; align-items: center; gap: 1.5rem; padding: 0.75rem 1.5rem; background: var(--ig-bg-strong); }
+	.ig-logo-badge { background: var(--ig-white); border-radius: var(--ig-radius-sm); padding: 0.35rem 0.75rem; box-shadow: var(--ig-shadow); display: flex; }
+	.ig-logo-badge img { height: 60px; width: auto; display: block; }
+	.ig-page-header nav { display: flex; gap: 1.25rem; margin-left: auto; }
+	.ig-page-header nav a { color: var(--ig-on-bg-muted); opacity: 1; text-decoration: none; font-size: 0.85rem; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; padding-bottom: 2px; }
+	.ig-page-header nav a:hover, .ig-page-header nav a[aria-current="page"] { color: var(--ig-on-bg-text); border-bottom: 2px solid var(--ig-teal-500); }
+	main { max-width: 800px; margin: 0 auto; padding: 2rem 1.5rem; }
+	h1 { color: var(--ig-on-bg-text); font-size: 1.4rem; margin-bottom: 1.5rem; }
+	form { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+	input[type=text] { flex: 1; padding: 0.6rem 0.8rem; border-radius: var(--ig-radius-sm); border: 1px solid var(--ig-border); background: var(--ig-surface); color: var(--ig-text); font-size: 1rem; }
+	button { padding: 0.6rem 1.2rem; border-radius: var(--ig-radius-sm); border: none; background: var(--ig-teal-500); color: var(--ig-navy-900); font-weight: 600; cursor: pointer; }
+	button:hover { background: var(--ig-teal-700); color: var(--ig-white); }
+	.answer-box { background: var(--ig-surface); border: 1px solid var(--ig-border); box-shadow: var(--ig-shadow); border-radius: var(--ig-radius); padding: 1.25rem; margin-bottom: 1.5rem; border-left: 4px solid var(--ig-teal-500); }
+	.answer-box.abstained { border-left-color: var(--ig-status-unknown); }
+	.answer-text { white-space: pre-wrap; line-height: 1.5; color: var(--ig-text); }
+	.source { background: var(--ig-tint); border: 1px solid var(--ig-border); border-radius: var(--ig-radius-sm); padding: 0.75rem 1rem; margin-bottom: 0.5rem; font-size: 0.85rem; }
+	.source .src-title { font-weight: 600; color: var(--ig-teal-700); }
+	.source .src-sim { color: var(--ig-text-muted); float: right; }
+	.source .src-text { color: var(--ig-text-muted); margin-top: 0.4rem; }
+	.note { font-size: 0.75rem; color: var(--ig-on-bg-muted); margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 1rem; }
 </style>
 </head>
 <body>
-<h1>IRIS Production Guardian &mdash; RAG Assistant</h1>
+<header class="ig-page-header">
+	<div class="ig-logo-badge"><img src="/csp/guardian/iris-guardian-logo-header.png" alt="IRIS Guardian"></div>
+	<nav>
+		<a href="Guardian.UI.MonitorPage.cls">Monitor</a>
+		<a href="Guardian.UI.RAGPage.cls" aria-current="page">RAG Assistant</a>
+	</nav>
+</header>
+<main>
+<h1>RAG Assistant</h1>
 <form method="get">
 	<input type="text" name="q" placeholder="Pergunte sobre o projeto..." value="#(tQuestion)#" autofocus>
 	<button type="submit">Perguntar</button>
@@ -80,8 +95,9 @@ ClassMethod OnPage() As %Status
 	&html<<div class="note">
 	Respostas geradas por IA (Google Gemini) a partir apenas dos documentos indexados deste projeto -
 	nao inventa informacao fora do contexto recuperado, e responde "nao sei" quando a similaridade
-	com a base e baixa. Limiar atual de abstencao: 0.58 (heuristica inicial, ver 04_FASE_3_RAG_ASSISTANT.md).
+	com a base e baixa. Limiar atual de abstencao: 0.58 (heuristica inicial, ver docs/planejamento/04_FASE_3_RAG_ASSISTANT.md).
 </div>
+</main>
 </body>
 </html>>
 
