@@ -33,7 +33,7 @@ controlado" citado no MVP).
 
 Business Rules **não foram usadas aqui** — o roteamento é código simples no
 Process. O motor de Business Rules (`Ens.Rule.Definition`) é um bônus
-separado (+2), ainda não implementado.
+separado (+2), implementado depois — ver §6.
 
 ## 3. Teste executado (09/09/2026) — evidência real, não simulada
 
@@ -122,14 +122,59 @@ seção 2): falha altera indicadores rastreáveis até o evento original, e a
 recuperação (automática para tráfego novo, manual para a mensagem afetada)
 é visível — nada foi escondido ou fingido como sucesso.
 
-## 6. Pendências desta fase (não feitas ainda)
+## 6. Business Rules (bônus +2) — roteamento real por regra, 10/09/2026
 
-- **Business Rules** (bônus +2): roteamento ainda é código fixo, não usa
-  `Ens.Rule.Definition`.
+Fecha a pendência registrada na seção 4: o roteamento deixou de ser código
+fixo no Process e passou a ser decidido por uma classe real
+`Ens.Rule.Definition`, editável no Rule Editor do Management Portal
+(Interoperability > Business Rules) sem recompilar nada.
+
+**Implementado:**
+
+- `Guardian.Rule.IncidentRoutingRule` (`Extends Ens.Rule.Definition`):
+  `XData RuleDefinition` com `context="Guardian.Messages.IncidentEvent"`,
+  uma regra `RouteBySeverity` que retorna o config name de destino —
+  `Guardian.Operation.PriorityOutputOperation` quando
+  `(Severity="HIGH")||(Severity="CRITICAL")`, senão
+  `Guardian.Operation.FileOutputOperation` (`<otherwise>`).
+- `Guardian.Process.IncidentRouterProcess.OnRequest` chama
+  `##class(Ens.Rule.Definition).EvaluateRules("Guardian.Rule.IncidentRoutingRule", "", pRequest, "", .tTarget, .tReason)`
+  e envia a mensagem para `tTarget` (em vez do `TargetConfigName` fixo, que
+  agora só serve de valor inicial de fallback).
+- Segunda Operation adicionada à Production
+  (`Guardian.Operation.PriorityOutputOperation`, mesma classe
+  `Guardian.Operation.FileOutputOperation`, apontando para
+  `/durable/guardian/out_priority`) — sem ela, "roteamento real" não teria
+  dois destinos possíveis para provar.
+
+**Teste executado (10/09/2026) — evidência real, não simulada:**
+
+1. `INC-101` (`HIGH`) e `INC-102` (`LOW`) depositados em `in/`. Resultado:
+   `INC-101` → `out_priority/incident_INC-101.txt`; `INC-102` →
+   `out/incident_INC-102.txt`. Confirmado por `Ens.MessageHeader`: o
+   `Process` roteou dinamicamente para operations diferentes na mesma
+   execução, sem qualquer mudança de código entre as duas mensagens.
+2. **Condição da regra alterada** (acrescentado `||(Severity="MEDIUM")`) e
+   recompilada — nenhuma mudança em `IncidentRouterProcess` nem na
+   Production. `INC-103` (`MEDIUM`), que antes cairia em `out/`, passou a
+   cair em `out_priority/incident_INC-103.txt`. Isso é a prova pedida pelo
+   critério do concurso ("mudar uma condição em teste e observar o
+   resultado"): o comportamento mudou porque a regra mudou, não porque o
+   código do Process mudou.
+3. Compilação feita via `iris session IRIS -U GUARDIAN` +
+   `$system.OBJ.Load(..., "ck")` dentro do container (não pela extensão VS
+   Code nesta sessão) — mesmo resultado observável no Rule Editor do
+   Portal.
+
+**Estado: confirmado.** Ver registro em `07_SCORECARD_EVIDENCIAS.md`.
+
+## 7. Pendências desta fase (não feitas ainda)
+
 - Nenhuma mensagem foi gerada com **carga real de "Production" observável
-  no Monitor** ainda — isso é a Fase 2.
+  no Monitor** ainda — isso é a Fase 2 (já endereçada por essa fase
+  separadamente).
 
-## 7. Próximo passo
+## 8. Próximo passo
 
 Começar a Fase 2: coletar o estado real dos hosts/filas via classes `Ens.*`
 (o que já exploramos manualmente aqui — `Ens.MessageHeader`,

@@ -1,7 +1,8 @@
-/// Business Process de demonstracao da Fase 1: recebe o
-/// Guardian.Messages.IncidentEvent do Service, aplica um roteamento minimo
-/// em codigo (nao e o motor de Business Rules - isso fica para um bonus
-/// separado) e encaminha para a Operation de saida.
+/// Business Process da Fase 1: recebe o Guardian.Messages.IncidentEvent do
+/// Service e encaminha para a Operation de saida escolhida por
+/// Guardian.Rule.IncidentRoutingRule (Ens.Rule.Definition) - roteamento
+/// real por regra, nao mais codigo fixo. TargetConfigName sobra como
+/// fallback caso a avaliacao da regra falhe antes de retornar um valor.
 Class Guardian.Process.IncidentRouterProcess Extends Ens.BusinessProcess
 {
 
@@ -18,7 +19,11 @@ Method OnRequest(pRequest As Guardian.Messages.IncidentEvent, Output pResponse A
 			Set pRequest.Severity = "UNKNOWN"
 		}
 
-		Set tSC = ..SendRequestSync(..TargetConfigName, pRequest, .pResponse)
+		Set tTarget = ..TargetConfigName
+		Set tSC = ##class(Ens.Rule.Definition).EvaluateRules("Guardian.Rule.IncidentRoutingRule", "", pRequest, "", .tTarget, .tReason)
+		If $$$ISERR(tSC) Quit
+
+		Set tSC = ..SendRequestSync(tTarget, pRequest, .pResponse)
 	} Catch ex {
 		Set tSC = ex.AsStatus()
 	}

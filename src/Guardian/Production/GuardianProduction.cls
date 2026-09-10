@@ -22,6 +22,9 @@ XData ProductionDefinition
   <Item Name="Guardian.Operation.FileOutputOperation" Category="" ClassName="Guardian.Operation.FileOutputOperation" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
     <Setting Target="Adapter" Name="FilePath">/durable/guardian/out</Setting>
   </Item>
+  <Item Name="Guardian.Operation.PriorityOutputOperation" Category="" ClassName="Guardian.Operation.FileOutputOperation" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
+    <Setting Target="Adapter" Name="FilePath">/durable/guardian/out_priority</Setting>
+  </Item>
 </Production>
 }
 

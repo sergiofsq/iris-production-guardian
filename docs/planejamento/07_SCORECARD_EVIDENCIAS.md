@@ -253,6 +253,27 @@ Detalhe completo em `05_FASE_4_AI_INVESTIGATOR_INTEGRATEDML_API.md`.
   por consulta SQL direta.
 - Estado: **confirmado**.
 
+## Business Rules — roteamento real por regra (+2, 10/09/2026)
+
+Detalhe completo em `02_FASE_1_PYPROD_INTEROPERABILITY.md` §6.
+
+- Prova: `Guardian.Rule.IncidentRoutingRule` (`Extends Ens.Rule.Definition`)
+  decide o config name de destino a partir de `Severity` do
+  `Guardian.Messages.IncidentEvent`; `Guardian.Process.IncidentRouterProcess`
+  chama `##class(Ens.Rule.Definition).EvaluateRules(...)` em vez de usar um
+  `TargetConfigName` fixo. Segunda Operation
+  (`Guardian.Operation.PriorityOutputOperation`) criada para o segundo
+  destino possível.
+- Evidência: `INC-101` (`HIGH`) → `out_priority/`, `INC-102` (`LOW`) →
+  `out/`, confirmado por arquivo e por `Ens.MessageHeader` (Process
+  roteando dinamicamente para operations diferentes na mesma execução).
+  Em seguida, a condição da regra foi alterada para incluir `MEDIUM` e
+  recompilada — sem tocar em `IncidentRouterProcess` nem na Production —
+  e `INC-103` (`MEDIUM`), que antes cairia em `out/`, passou a cair em
+  `out_priority/`. Prova direta do critério "mudar uma condição em teste e
+  observar o resultado".
+- Estado: **confirmado**.
+
 ## Pendências ainda abertas (não testadas nesta rodada)
 
 - WSGI e PyProd: não são pendência técnica, são conflito estrutural com a
