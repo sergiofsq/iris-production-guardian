@@ -24,7 +24,7 @@ exceção foi aplicada até aqui.
 | Fase 0 — Setup e arquitetura | `01_FASE_0_SETUP_ARQUITETURA.md` | Infraestrutura e VRs críticos fechados. Só bônus (multimodelo/híbrida/API pública) pendentes — não bloqueiam as demais fases |
 | Fase 1 — Production COS / interoperabilidade | `02_FASE_1_PYPROD_INTEROPERABILITY.md` | Objetivo principal cumprido — Service/Process/Operation com adaptador de arquivo, mensagem real ponta a ponta, cenário de falha/recuperação testado e reproduzível (`docs/experiments/01_falha_recuperacao_producao.md`). Falta apenas Business Rules (bônus opcional) |
 | Fase 2 — Production Monitor / telemetria | `03_FASE_2_PRODUCTION_MONITOR_WSGI_TELEMETRY.md` | Primeira versão concluída e validada visualmente pelo proprietário. Série temporal persistida fica como melhoria futura |
-| Fase 3 — RAG Assistant | `04_FASE_3_RAG_ASSISTANT.md` | Primeira versão completa e testada: ingestão, chunking, armazenamento vetorial, recuperação, geração com citação, abstenção calibrada, página de consulta. Falta busca híbrida (bônus) e validação visual |
+| Fase 3 — RAG Assistant | `04_FASE_3_RAG_ASSISTANT.md` | Completa e testada: ingestão, chunking, armazenamento vetorial, recuperação híbrida (vetorial + lexical via iFind, bônus +3, ver §4), geração com citação, abstenção calibrada, página de consulta. Validação visual concluída em 10/09/2026 (fundo/logo ajustados) |
 | Fase 4 — AI Investigator / IntegratedML / API | `05_FASE_4_AI_INVESTIGATOR_INTEGRATEDML_API.md` | Não iniciada (IntegratedML já registrado como bloqueado — VR-003) |
 | Fase 5 — Hardening, testes, demo | `06_FASE_5_HARDENING_TESTS_DEMO.md` | Não iniciada |
 | Scorecard de evidências | `07_SCORECARD_EVIDENCIAS.md` | Ativo — atualizado a cada VR fechado |
@@ -133,6 +133,18 @@ presumir 23h59 (herdado do contexto, ainda aberto).
   físico da aplicação CSP `/csp/guardian/`) via `docker cp` — não faz
   parte do volume versionado no Git, reproduzir o `docker cp` após
   recriar o container.
+- **10/09/2026** — Busca híbrida implementada (bônus +3, fechando a
+  pendência da Fase 3): índice `%iFind.Index.Basic` sobre
+  `Guardian_RAG.Chunk.ChunkText` + Reciprocal Rank Fusion com a busca
+  vetorial já existente, dentro de `Guardian.RAG.Query.Ask`. Testado ao
+  vivo com pergunta contendo código de erro exato (`#5005`, recuperado e
+  citado corretamente) e reconfirmada a abstenção em pergunta irrelevante
+  (calibração de 0.58 intacta, pois o gate de abstenção continua baseado
+  só na similaridade vetorial pura, não no score híbrido). Achado
+  registrado: `%iFind.Rank` (função de ranking nativa do iFind) não
+  aceitou a sintaxe esperada — decisão de usar um bônus fixo por match
+  lexical em vez de inventar uma posição de rank não calculada. Ver
+  `04_FASE_3_RAG_ASSISTANT.md` §6.
 
 ## 5. Registro de pendências (VERIFY_REQUIRED)
 
@@ -141,7 +153,8 @@ Registro único em `07_SCORECARD_EVIDENCIAS.md`. Resumo do que segue aberto:
 - Interfaces de métricas/filas/logs para o Monitor.
 - Business Rules (roteamento real).
 - Multimodelo (formas reais de acesso por tipo).
-- Pesquisa híbrida (lexical + vetorial).
+- ~~Pesquisa híbrida (lexical + vetorial)~~ — **fechada 10/09/2026**:
+  iFind + RRF em `Guardian.RAG.Query`, ver `04_FASE_3_RAG_ASSISTANT.md` §6.
 - Acesso a API pública adequada.
 - ~~Provedor/modelo de IA para embeddings e geração~~ — **fechado
   09/09/2026**: Google Gemini API (tier gratuito), ver
@@ -197,7 +210,10 @@ erro pontual, excluído a pedido direto do proprietário.
 
 ## 8. Próximo passo imediato
 
-Validação visual da página do RAG Assistant pelo proprietário
-(`http://localhost:53773/csp/guardian/Guardian.UI.RAGPage.cls`). Depois,
-decidir entre reforçar o RAG (busca híbrida, mais corpus) ou avançar para
-a Fase 4 (AI Incident Investigator).
+Validação visual (RAG e Monitor) e busca híbrida concluídas em
+10/09/2026 — decisão do proprietário foi manter o Gemini free tier por
+enquanto (token instável, mas sem troca de provedor por ora). Fase 3
+está com todos os itens não-bônus fechados; resta só como bônus opcional
+mais corpus/comparação de chunking (ver `04_FASE_3_RAG_ASSISTANT.md` §4).
+Próxima decisão: avançar para a Fase 4 (AI Incident Investigator, ainda
+não iniciada) ou continuar reforçando a Fase 3.

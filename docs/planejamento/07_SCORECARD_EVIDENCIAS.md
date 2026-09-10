@@ -202,13 +202,33 @@ Detalhe completo em `04_FASE_3_RAG_ASSISTANT.md`.
   com evidência real (não apenas descrita).
 - Estado: **confirmado**.
 
+### Busca híbrida — lexical + vetorial (+3) — 10/09/2026
+
+- Prova: índice de texto completo nativo `%iFind.Index.Basic`
+  (`idxChunkTextFind`) sobre `Guardian_RAG.Chunk.ChunkText`, criado em
+  `Guardian.RAG.Schema.Setup`; fundido com a busca vetorial existente via
+  Reciprocal Rank Fusion (`k=60`) em `Guardian.RAG.Query.Ask`, pool de até
+  15 candidatos de cada busca, TopK final 5.
+- Evidência: pergunta com código de erro exato ("O que significa o erro
+  #5005 no cenário de falha?") recuperou e citou corretamente o chunk
+  correto (melhor similaridade 0.677, 5 fontes); pergunta irrelevante
+  ("receita de bolo de chocolate") continuou corretamente abstida
+  (similaridade 0.521, abaixo do limiar de 0.58) — confirma que a fusão
+  híbrida não alterou a calibração de abstenção já validada, pois o gate
+  usa só a similaridade vetorial pura.
+- Achado registrado (não escondido): a função de ranking nativa do iFind
+  (`%iFind.Rank`) não aceitou a sintaxe testada ao vivo (`Field
+  'IDXCHUNKTEXTFIND' not found`); em vez de inventar uma posição de rank
+  não calculada, um match lexical soma um bônus fixo equivalente a rank 1
+  na fusão — simplificação honesta, documentada em
+  `04_FASE_3_RAG_ASSISTANT.md` §6.
+- Estado: **confirmado**.
+
 ## Pendências ainda abertas (não testadas nesta rodada)
 
 - WSGI e PyProd: não são pendência técnica, são conflito estrutural com a
   premissa "COS first" (seção 1.1 do contexto) — WSGI é por definição uma
   interface Python; PyProd hospeda hosts em Python. Decisão do proprietário
   registrada: não perseguir esses dois bônus, manter tudo em COS.
-- Multimodelo, busca híbrida (lexical + vetorial), API pública: ainda não
-  testados; dependem da arquitetura de classes que será definida nas
-  próximas fases. Busca híbrida especificamente teria ligação direta com
-  o RAG já implementado — candidato natural a próximo reforço.
+- Multimodelo, API pública: ainda não testados; dependem da arquitetura
+  de classes que será definida nas próximas fases.

@@ -160,6 +160,46 @@ não da aplicação. Não precisou de correção no código.
    de que indisponibilidade do modelo não deve impedir o uso da
    aplicação.
 
+## 6. Busca híbrida (lexical + vetorial) — 10/09/2026
+
+Bônus +3 implementado: `Guardian.RAG.Query.Ask` agora funde dois
+rankings independentes antes de montar o TopK final.
+
+- **Índice lexical**: `idxChunkTextFind`, um índice `%iFind.Index.Basic`
+  (full-text search nativo do IRIS) sobre `Guardian_RAG.Chunk.ChunkText`,
+  criado em `Guardian.RAG.Schema.Setup` — verificado ao vivo que funciona
+  na Community Edition sem licença extra (mesma família de achado do
+  VR-001/VR-002). Busca via predicado SQL `%FIND search_index(...)`.
+- **Fusão**: Reciprocal Rank Fusion (RRF, `score = 1/(k+rank)`, `k=60`,
+  valor de referência da literatura de IR, sem tuning específico deste
+  corpus pequeno). Pool de até 15 candidatos de cada busca (vetorial e
+  lexical), TopK final continua 5.
+- **Limitação encontrada e decisão registrada**: a função de ranking
+  nativa do iFind (`%iFind.Rank`) não aceitou a sintaxe esperada nos
+  testes ao vivo (`Field 'IDXCHUNKTEXTFIND' not found`) — em vez de
+  adivinhar a sintaxe correta ou fingir uma posição de rank que não foi
+  calculada, um match lexical soma um bônus fixo (equivalente a rank 1)
+  na fusão. É uma simplificação honesta, não uma métrica de relevância
+  lexical fina — registrado aqui para não ser confundido com um
+  `%iFind.Rank` real caso alguém tente otimizar isso depois.
+- **Abstenção não foi alterada**: o gate de `MinSimilarity` (seção 5)
+  continua baseado *apenas* na melhor similaridade vetorial pura, nunca
+  no score RRF — decisão deliberada para não invalidar a calibração já
+  testada com os 2 pontos reais (0.653 relevante / 0.518 irrelevante).
+- **Testes reais (10/09/2026)**:
+  - "O que significa o erro #5005 no cenário de falha?" → recuperou e
+    citou corretamente o chunk com `ERROR #5005`, 5 fontes, sem abstenção
+    (melhor similaridade 0.677).
+  - "receita de bolo de chocolate" (irrelevante) → abstenção mantida
+    (melhor similaridade 0.521, abaixo do limiar) — confirma que a fusão
+    híbrida não quebrou a calibração de abstenção já validada.
+  - "Explique GeminiClient" → recuperou 5 fontes da Fase 3, todas acima
+    do limiar. Nesse teste específico o Gemini também retornou um erro
+    real de timeout (`ERROR #5922`) numa primeira tentativa — reforça a
+    pendência de instabilidade/esgotamento de tier gratuito já registrada
+    (ver `00_MASTER_PLAN.md` §8); na segunda tentativa funcionou
+    normalmente.
+
 ## 4. Estado atual e pendências
 
 **Concluído e testado (09/09/2026):** cliente Gemini, esquema de dados,
@@ -168,10 +208,10 @@ recuperação vetorial, geração com citação, abstenção calibrada, página 
 consulta, resiliência a falha do modelo. Testes reais incluíram uma
 pergunta relevante (respondida corretamente e citada), uma irrelevante
 (abstenção correta) e uma indisponibilidade real da API (503, tratada sem
-derrubar a página).
+derrubar a página). **Busca híbrida** (lexical + vetorial) implementada e
+testada em 10/09/2026 — ver seção 6.
 
 **Pendente:**
-- Busca híbrida (lexical + vetorial) — bônus +3, ainda não implementado.
 - Comparação formal de estratégias de chunking (o critério do concurso
   pede "justificativa", que já temos por raciocínio; um teste comparativo
   A/B com outra estratégia fortaleceria a evidência).
@@ -179,4 +219,6 @@ derrubar a página).
   rigor.
 - Ingestão de documentação além dos próprios arquivos de fase do projeto
   (ex. documentação pública do IRIS), se fizer sentido para o vídeo/artigo.
-- Validação visual da página pelo proprietário.
+- Decisão de provedor de IA para resolver o esgotamento do tier gratuito
+  do Gemini (ver `00_MASTER_PLAN.md` §8) — reforçada pelo timeout real
+  observado no teste de busca híbrida acima.

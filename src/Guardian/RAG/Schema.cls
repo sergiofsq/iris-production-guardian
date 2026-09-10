@@ -40,6 +40,19 @@ ClassMethod Setup() As %Status
 		If tRS2.%SQLCODE < 0 {
 			Throw ##class(%Exception.General).%New("Falha ao criar Chunk: "_tRS2.%Message)
 		}
+
+		// Indice de texto completo (iFind) para a busca lexical da Fase 3
+		// hibrida - verificado ao vivo em 10/09/2026 que funciona na
+		// Community Edition sem licenca extra (mesma familia de achado do
+		// VR-001/VR-002). CREATE INDEX nao aceita IF NOT EXISTS nesta
+		// versao - idempotencia via SQLCODE (-201/-324 = indice ja existe).
+		Set tStmt3 = ##class(%SQL.Statement).%New()
+		Do tStmt3.%Prepare(
+			"CREATE INDEX idxChunkTextFind ON TABLE Guardian_RAG.Chunk (ChunkText) AS %iFind.Index.Basic")
+		Set tRS3 = tStmt3.%Execute()
+		If (tRS3.%SQLCODE < 0) && (tRS3.%SQLCODE '= -201) && (tRS3.%SQLCODE '= -324) {
+			Throw ##class(%Exception.General).%New("Falha ao criar idxChunkTextFind: "_tRS3.%Message)
+		}
 	} Catch ex {
 		Set tSC = ex.AsStatus()
 	}
