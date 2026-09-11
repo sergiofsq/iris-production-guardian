@@ -19,12 +19,6 @@ ClassMethod OnPage() As %Status
 <title>IRIS Production Guardian - Monitor</title>
 <link rel="stylesheet" href="/csp/guardian/assets/css/iris-guardian-theme.css">
 <style>
-	.ig-page-header { display: flex; align-items: center; gap: 1.5rem; padding: 0.75rem 1.5rem; background: var(--ig-bg-strong); }
-	.ig-logo-badge { background: var(--ig-white); border-radius: var(--ig-radius-sm); padding: 0.35rem 0.75rem; box-shadow: var(--ig-shadow); display: flex; }
-	.ig-logo-badge img { height: 60px; width: auto; display: block; }
-	.ig-page-header nav { display: flex; gap: 1.25rem; margin-left: auto; }
-	.ig-page-header nav a { color: var(--ig-on-bg-muted); text-decoration: none; font-size: 0.85rem; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; padding-bottom: 2px; }
-	.ig-page-header nav a:hover, .ig-page-header nav a[aria-current="page"] { color: var(--ig-on-bg-text); border-bottom: 2px solid var(--ig-teal-500); }
 	main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
 	h1 { color: var(--ig-on-bg-text); font-size: 1.4rem; margin-bottom: 0.25rem; }
 	.meta { color: var(--ig-on-bg-muted); font-size: 0.85rem; margin-bottom: 1.5rem; }
@@ -51,15 +45,11 @@ ClassMethod OnPage() As %Status
 </style>
 </head>
 <body>
-<header class="ig-page-header">
-	<div class="ig-logo-badge"><img src="/csp/guardian/iris-guardian-logo-header.png" alt="IRIS Guardian"></div>
-	<nav>
-		<a href="Guardian.UI.MonitorPage.cls" aria-current="page">Monitor</a>
-		<a href="Guardian.UI.InvestigatorPage.cls">Investigator</a>
-		<a href="Guardian.UI.RAGPage.cls">RAG Assistant</a>
-	</nav>
-</header>
-<main>
+<div class="ig-shell">>
+
+	Do ##class(Guardian.UI.Shared).RenderSidebar("monitor")
+
+	&html<<main class="ig-main">
 <h1>Production Monitor</h1>
 <div class="meta">
 	Production: <strong>#(tData.production)#</strong> &middot;
@@ -123,6 +113,7 @@ ClassMethod OnPage() As %Status
 	sem coletor agendado independente nesta v1.
 </div>
 </main>
+</div>
 </body>
 </html>>
 

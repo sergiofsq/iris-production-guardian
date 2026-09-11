@@ -169,3 +169,160 @@ body {
   background: var(--ig-teal-700);
   color: var(--ig-white);
 }
+
+/*
+ * Layout de shell com sidebar persistente (Guardian.UI.Shared.RenderSidebar),
+ * compartilhado por Monitor/Investigator/RAG Assistant - decisao de
+ * 11/09/2026: o Production Monitor precisa continuar visivel (resumo
+ * compacto) mesmo quando o usuario navega para outra ferramenta, sem
+ * depender de JS/iframe.
+ */
+.ig-shell {
+  display: flex;
+  min-height: 100vh;
+  align-items: stretch;
+}
+
+.ig-sidebar {
+  flex: 0 0 260px;
+  width: 260px;
+  background: var(--ig-bg-strong);
+  padding: 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.ig-sidebar .ig-logo-badge {
+  background: var(--ig-white);
+  border-radius: var(--ig-radius-sm);
+  padding: 0.35rem 0.75rem;
+  box-shadow: var(--ig-shadow);
+  display: flex;
+  width: fit-content;
+}
+
+.ig-sidebar .ig-logo-badge img {
+  height: 44px;
+  width: auto;
+  display: block;
+}
+
+.ig-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.ig-sidebar-nav a {
+  color: var(--ig-on-bg-muted);
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 0.5rem 0.6rem;
+  border-radius: var(--ig-radius-sm);
+  border-left: 3px solid transparent;
+}
+
+.ig-sidebar-nav a:hover {
+  color: var(--ig-on-bg-text);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.ig-sidebar-nav a[aria-current="page"] {
+  color: var(--ig-on-bg-text);
+  background: rgba(255, 255, 255, 0.14);
+  border-left-color: var(--ig-teal-500);
+}
+
+.ig-sidebar-monitor {
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  padding-top: 1rem;
+}
+
+.ig-sidebar-monitor h3 {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ig-on-bg-muted);
+  margin: 0 0 0.5rem;
+}
+
+.ig-sidebar-meta {
+  font-size: 0.72rem;
+  color: var(--ig-on-bg-muted);
+  margin-bottom: 0.6rem;
+  line-height: 1.4;
+}
+
+.ig-mini-host {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.32rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.72rem;
+}
+
+.ig-mini-host:last-of-type {
+  border-bottom: none;
+}
+
+.ig-mini-host .ig-mini-name {
+  color: var(--ig-on-bg-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 165px;
+}
+
+.ig-mini-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.ig-mini-dot.healthy { background: var(--ig-status-healthy); }
+.ig-mini-dot.degraded { background: var(--ig-status-degraded); }
+.ig-mini-dot.unavailable { background: var(--ig-status-down); }
+.ig-mini-dot.unknown { background: var(--ig-status-unknown); }
+
+.ig-sidebar-link {
+  display: inline-block;
+  margin-top: 0.75rem;
+  font-size: 0.72rem;
+  color: var(--ig-teal-300);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.ig-sidebar-link:hover {
+  text-decoration: underline;
+}
+
+.ig-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+@media (max-width: 800px) {
+  .ig-shell {
+    flex-direction: column;
+  }
+  .ig-sidebar {
+    width: 100%;
+    flex: 0 0 auto;
+    position: static;
+    height: auto;
+  }
+}
