@@ -7,21 +7,23 @@
 Class Guardian.UI.Shared Extends %RegisteredObject
 {
 
-/// pCurrentPage: "monitor", "investigator" ou "rag" - controla qual link
-/// da nav recebe aria-current="page".
+/// pCurrentPage: "monitor", "investigator", "rag" ou "ragalt" - controla
+/// qual link da nav recebe aria-current="page".
 ClassMethod RenderSidebar(pCurrentPage As %String) As %Status
 {
 	Set tData = ##class(Guardian.Monitor.StatusCollector).Collect()
 	Set tOnMonitor = $Select(pCurrentPage="monitor":" aria-current=""page""", 1:"")
 	Set tOnInvestigator = $Select(pCurrentPage="investigator":" aria-current=""page""", 1:"")
 	Set tOnRAG = $Select(pCurrentPage="rag":" aria-current=""page""", 1:"")
+	Set tOnRAGAlt = $Select(pCurrentPage="ragalt":" aria-current=""page""", 1:"")
 
 	&html<<aside class="ig-sidebar">
 	<div class="ig-logo-badge"><img src="/csp/guardian/iris-guardian-logo-header.png" alt="IRIS Guardian"></div>
 	<nav class="ig-sidebar-nav">
 		<a href="Guardian.UI.MonitorPage.cls"#(tOnMonitor)#>Monitor</a>
 		<a href="Guardian.UI.InvestigatorPage.cls"#(tOnInvestigator)#>Investigator</a>
-		<a href="Guardian.UI.RAGPage.cls"#(tOnRAG)#>RAG Assistant</a>
+		<a href="Guardian.UI.RAGPage.cls"#(tOnRAG)#>RAG Assistant (Gemini)</a>
+		<a href="Guardian.UI.RAGAltPage.cls"#(tOnRAGAlt)#>RAG Assistant (novo modelo)</a>
 	</nav>
 	<div class="ig-sidebar-monitor">
 	<h3>Production Monitor</h3>
