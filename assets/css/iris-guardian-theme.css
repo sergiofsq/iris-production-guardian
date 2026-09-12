@@ -2,7 +2,7 @@
  * IRIS Guardian — design tokens e estilos base
  *
  * Paleta extraída por amostragem de pixel da arte oficial do produto
- * (assets/iris-guardian-logo.png), não de nenhum arquivo de propriedade da
+ * (assets/production-guardian-logo.png), não de nenhum arquivo de propriedade da
  * InterSystems. Tipografia usa pilha de fontes de sistema (não a fonte
  * proprietária da InterSystems) para manter o visual "inspirado em", sem
  * reproduzir ativos de marca de terceiros.
@@ -315,6 +315,100 @@ body {
   flex: 1 1 auto;
   min-width: 0;
   overflow-y: auto;
+}
+
+/*
+ * Indicador de carregamento para botoes de acao (Investigar/Perguntar) que
+ * disparam uma chamada ao modelo de IA e recarregam a pagina - sem esse
+ * sinal visual o clique parecia nao ter feito nada e o usuario clicava de
+ * novo. Aplicado via JS (ver InvestigatorPage/RAGPage/RAGAltPage) no
+ * submit do formulario: desabilita o botao (evita reenvio duplicado) e
+ * acrescenta o spinner abaixo.
+ */
+button:disabled {
+  cursor: wait;
+  opacity: 0.75;
+}
+
+.ig-btn-loading::after {
+  content: "";
+  display: inline-block;
+  width: 0.8em;
+  height: 0.8em;
+  margin-left: 0.6em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  vertical-align: -0.15em;
+  animation: ig-spin 0.6s linear infinite;
+}
+
+@keyframes ig-spin {
+  to { transform: rotate(360deg); }
+}
+
+/*
+ * Banner de carregamento (12/09/2026) - o spinner discreto no botao (acima)
+ * passou despercebido: usuario continuava sem sinal claro de processamento
+ * em andamento. Este banner usa o proprio emblema do escudo IRIS Guardian
+ * (recortado/com fundo removido a partir de assets/production-guardian-logo.png,
+ * ver assets/iris-guardian-spinner.png) girando continuamente - grande o
+ * suficiente para nao passar despercebido, mas consistente com a marca do
+ * produto em vez de um spinner generico. Fica oculto (atributo HTML
+ * "hidden") ate o JS de cada pagina revelar no submit do formulario -
+ * ".ig-loading[hidden]" precisa ser explicito porque a regra de display
+ * abaixo (autor) teria prioridade sobre o "display:none" nativo do atributo
+ * hidden (regra do UA), senao o elemento nao ficaria de fato escondido antes
+ * do clique.
+ */
+.ig-loading[hidden] {
+  display: none;
+}
+
+.ig-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  background: var(--ig-tint);
+  border: 1px solid var(--ig-border);
+  border-left: 4px solid var(--ig-teal-500);
+  border-radius: var(--ig-radius-sm);
+  padding: 0.85rem 1.1rem;
+  margin-bottom: 1.25rem;
+  color: var(--ig-text);
+  font-size: 0.9rem;
+  perspective: 400px;
+}
+
+/* Gira no proprio eixo vertical (rotateY), como uma moeda rodando sobre a
+   mesa - nao no sentido horario do relogio (rotate 2D simples, usado ainda
+   no spinner generico do botao acima). "perspective" no container pai da
+   profundidade 3D para o efeito de afinar/alargar durante o giro. */
+.ig-loading-emblem {
+  width: 44px;
+  height: auto;
+  flex: 0 0 auto;
+  animation: ig-coin-spin 1.6s linear infinite;
+}
+
+@keyframes ig-coin-spin {
+  to { transform: rotateY(360deg); }
+}
+
+/*
+ * Formatacao leve de Markdown (12/09/2026, ver Guardian.UI.Shared.FormatText)
+ * para o texto de respostas do RAG Assistant/Investigator e trechos de
+ * documentos - esses textos usam `code`, **negrito** e cabecalhos
+ * markdown "#" que antes apareciam com os simbolos literais na tela.
+ */
+.answer-text code,
+.src-text code,
+.ic-analysis code {
+  background: color-mix(in srgb, var(--ig-navy-900) 8%, transparent);
+  border-radius: 4px;
+  padding: 0.05em 0.35em;
+  font-family: var(--ig-font-mono);
+  font-size: 0.92em;
 }
 
 @media (max-width: 800px) {

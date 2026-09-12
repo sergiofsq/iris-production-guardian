@@ -149,7 +149,22 @@ ClassMethod Retrieve(pQuestion As %String) As %DynamicObject
 
 /// Faz a pergunta pQuestion contra o corpus indexado. Retorna um
 /// %DynamicObject: {question, abstained, answer, sources:[...]}.
-ClassMethod Ask(pQuestion As %String) As %DynamicObject
+///
+/// pInvestigationContext (opcional): analise completa (RESUMO / OBSERVACOES
+/// / HIPOTESES / LACUNAS / PROXIMOS PASSOS SUGERIDOS) da ultima investigacao
+/// do AI Incident Investigator, quando o usuario pergunta "como resolver o
+/// problema investigado em X" a partir do RAG Assistant (ver
+/// Guardian.UI.RAGPage). Antes desta mudanca essa investigacao so aparecia
+/// como um resumo visual na pagina - nunca era enviada ao modelo, entao o
+/// RAG so tinha os documentos indexados (que raramente cobrem o incidente
+/// especifico) para responder e abstinha mesmo tendo a analise completa (com
+/// PROXIMOS PASSOS SUGERIDOS) disponivel a poucos centimetros na tela.
+/// Quando presente, este contexto participa da geracao e TAMBEM evita a
+/// abstencao por baixa similaridade nos documentos (MinSimilarity continua
+/// controlando exclusivamente o corpus de documentos - ver comentario do
+/// parametro - a investigacao e uma fonte de grounding independente, coletada
+/// como evidencia real por Guardian.Investigator.EvidenceCollector).
+ClassMethod Ask(pQuestion As %String, pInvestigationContext As %String = "") As %DynamicObject
 {
 	Set tResult = {}
 	Set tResult.question = pQuestion
@@ -158,20 +173,32 @@ ClassMethod Ask(pQuestion As %String) As %DynamicObject
 	Set tResult.sources = tRetrieval.sources
 	Set tResult.bestSimilarity = tRetrieval.bestSimilarity
 
-	If (tRetrieval.bestSimilarity < ..#MinSimilarity) || (tRetrieval.sources.%Size() = 0) {
+	Set tHasDocs = (tRetrieval.bestSimilarity >= ..#MinSimilarity) && (tRetrieval.sources.%Size() > 0)
+	Set tHasInvestigation = (pInvestigationContext '= "")
+
+	If 'tHasDocs && 'tHasInvestigation {
 		Set tResult.abstained = 1
 		Set tResult.answer = "Não há informação suficiente na base indexada para responder com confiança a esta pergunta."
 		Quit tResult
 	}
 
 	Set tPrompt =
-		"Responda a pergunta usando APENAS as informações fornecidas abaixo. " _
-		"Se as informações não forem suficientes, diga explicitamente que não sabe - não invente. " _
-		"Cite a fonte (o texto entre colchetes [Fonte: ...]) usada em cada afirmação." _
-		$Char(10, 10) _
-		"CONTEXTO:" _ $Char(10) _ tRetrieval.contextText _
-		$Char(10) _
-		"PERGUNTA: " _ pQuestion
+		"Você é o assistente de resolução de incidentes do IRIS Production Guardian. " _
+		"Responda a pergunta usando APENAS as informações fornecidas abaixo (a investigação de incidente atual e/ou a documentação indexada). " _
+		"Se nenhuma das duas for suficiente, diga explicitamente que não sabe - não invente. " _
+		"Dê uma resposta prática e acionável: liste os passos em ordem, e sempre que a documentação indicar um caminho de menu do Management Portal, uma tela, um botão ou um comando, cite esse caminho/comando literalmente (ex.: 'Interoperability -> Configure -> Production', 'Message Viewer -> selecionar a mensagem -> Resend'). " _
+		"Cite a fonte de cada afirmação: 'a investigação atual' para dados vindos do AI Incident Investigator, ou o texto entre colchetes [Fonte: ...] para documentos." _
+		$Char(10, 10)
+
+	If tHasInvestigation {
+		Set tPrompt = tPrompt _ "INVESTIGAÇÃO ATUAL (AI Incident Investigator - evidência real coletada e análise já geradas para este incidente):" _ $Char(10) _ pInvestigationContext _ $Char(10, 10)
+	}
+
+	If tHasDocs {
+		Set tPrompt = tPrompt _ "DOCUMENTAÇÃO INDEXADA:" _ $Char(10) _ tRetrieval.contextText _ $Char(10)
+	}
+
+	Set tPrompt = tPrompt _ $Char(10) _ "PERGUNTA: " _ pQuestion
 
 	Set tResult.abstained = 0
 	Set tResult.answer = ##class(Guardian.RAG.GeminiClient).Generate(tPrompt)

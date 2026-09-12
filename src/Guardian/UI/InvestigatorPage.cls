@@ -30,7 +30,7 @@ ClassMethod OnPage() As %Status
 <head>
 <meta charset="utf-8">
 <title>IRIS Production Guardian - AI Incident Investigator</title>
-<link rel="stylesheet" href="/csp/guardian/assets/css/iris-guardian-theme.css">
+<link rel="stylesheet" href="/csp/guardian/assets/css/iris-guardian-theme.css?v=2">
 <style>
 	main { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
 	h1 { color: var(--ig-on-bg-text); font-size: 1.4rem; margin-bottom: 0.25rem; }
@@ -55,7 +55,7 @@ ClassMethod OnPage() As %Status
 	.source { background: var(--ig-tint); border: 1px solid var(--ig-border); border-radius: var(--ig-radius-sm); padding: 0.75rem 1rem; margin-bottom: 0.5rem; font-size: 0.85rem; }
 	.source .src-title { font-weight: 600; color: var(--ig-teal-700); }
 	.source .src-sim { color: var(--ig-text-muted); float: right; }
-	.source .src-text { color: var(--ig-text-muted); margin-top: 0.4rem; }
+	.source .src-text { color: var(--ig-text-muted); margin-top: 0.4rem; white-space: pre-wrap; }
 	.answer-box { background: var(--ig-surface); border: 1px solid var(--ig-border); box-shadow: var(--ig-shadow); border-radius: var(--ig-radius); padding: 1.25rem; margin-bottom: 1.5rem; border-left: 4px solid var(--ig-teal-500); }
 	.answer-box.unavailable { border-left-color: var(--ig-status-unknown); }
 	.answer-text { white-space: pre-wrap; line-height: 1.5; color: var(--ig-text); }
@@ -85,8 +85,28 @@ ClassMethod OnPage() As %Status
 	&html<</select>
 	<label for="window">Janela (minutos)</label>
 	<input type="number" name="window" id="window" min="1" value="#(tWindowMinutes)#">
-	<button type="submit">Investigar</button>
-</form>>
+	<button type="submit" data-loading-text="Investigando...">Investigar</button>
+</form>
+<div class="ig-loading" id="ig-loading" hidden>
+	<img src="/csp/guardian/iris-guardian-spinner.png" alt="" class="ig-loading-emblem">
+	<span>Coletando evidência e analisando com IA... isso pode levar alguns segundos.</span>
+</div>
+<script>
+(function () {
+	var form = document.querySelector("form");
+	if (!form) { return; }
+	form.addEventListener("submit", function () {
+		var btn = form.querySelector("button[type=submit]");
+		if (!btn || btn.disabled) { return; }
+		btn.disabled = true;
+		btn.setAttribute("aria-busy", "true");
+		btn.textContent = btn.getAttribute("data-loading-text") || "Processando...";
+		btn.classList.add("ig-btn-loading");
+		var loading = document.getElementById("ig-loading");
+		if (loading) { loading.hidden = false; }
+	});
+})();
+</script>>
 
 	If (tComponent '= "") {
 		Set tResult = ##class(Guardian.Investigator.Analyzer).Investigate(tComponent, tWindowMinutes)
@@ -130,7 +150,7 @@ ClassMethod OnPage() As %Status
 				&html<<div class="event">
 	<div class="evt-meta">msg ##(tEv.id)# &middot; #(tEv.timeCreated)# &middot; #(tEv.source)# &rarr; #(tEv.target)#</div>>
 				If tEv.hasError {
-					&html<<div class="evt-error">#(tEv.%Get("errorText"))#</div>>
+					&html<<div class="evt-error">#($ZConvert(tEv.%Get("errorText"), "O", "HTML"))#</div>>
 				} Else {
 					&html<<div class="evt-ok">sucesso</div>>
 				}
@@ -142,7 +162,7 @@ ClassMethod OnPage() As %Status
 		&html<<h2>Análise</h2>>
 		Set tBoxClass = $Select(tResult.modelAvailable:"answer-box", 1:"answer-box unavailable")
 		&html<<div class="#(tBoxClass)#">
-	<div class="answer-text">#(tResult.analysis)#</div>
+	<div class="answer-text">#(##class(Guardian.UI.Shared).FormatText(tResult.analysis))#</div>
 </div>>
 
 		&html<<h2>Documentação relacionada</h2>>
@@ -154,8 +174,8 @@ ClassMethod OnPage() As %Status
 				Set tSimFmt = $FNumber(tDoc.similarity, "", 3)
 				&html<<div class="source">
 	<span class="src-sim">similaridade: #(tSimFmt)#</span>
-	<span class="src-title">#(tDoc.title)#</span> (#(tDoc.source)#)
-	<div class="src-text">#(tDoc.chunkText)#</div>
+	<span class="src-title">#(##class(Guardian.UI.Shared).FormatText(tDoc.title))#</span> (#($ZConvert(tDoc.source, "O", "HTML"))#)
+	<div class="src-text">#(##class(Guardian.UI.Shared).FormatText(tDoc.chunkText))#</div>
 </div>>
 			}
 		}

@@ -17,7 +17,7 @@ ClassMethod OnPage() As %Status
 <meta charset="utf-8">
 <meta http-equiv="refresh" content="10">
 <title>IRIS Production Guardian - Monitor</title>
-<link rel="stylesheet" href="/csp/guardian/assets/css/iris-guardian-theme.css">
+<link rel="stylesheet" href="/csp/guardian/assets/css/iris-guardian-theme.css?v=2">
 <style>
 	main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
 	h1 { color: var(--ig-on-bg-text); font-size: 1.4rem; margin-bottom: 0.25rem; }

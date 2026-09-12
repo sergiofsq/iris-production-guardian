@@ -139,7 +139,7 @@ container (they live in the named volume, so this survives restarts, but
 not a brand-new `docker volume create`):
 
 ```sh
-docker cp assets/iris-guardian-logo-header.png iris-guardian:/durable/csp/guardian/iris-guardian-logo-header.png
+docker cp assets/production-guardian-logo.png iris-guardian:/durable/csp/guardian/production-guardian-logo.png
 docker exec iris-guardian mkdir -p /durable/csp/guardian/assets/css
 docker cp assets/css/iris-guardian-theme.css iris-guardian:/durable/csp/guardian/assets/css/iris-guardian-theme.css
 ```

@@ -172,6 +172,18 @@ ClassMethod IngestDocument(pSource As %String, pTitle As %String, pVersion As %S
 ClassMethod IngestFile(pPath As %String, pSource As %String, pTitle As %String, pVersion As %String) As %Integer
 {
 	Set tFile = ##class(%Stream.FileCharacter).%New()
+	// TranslateTable precisa ser setado ANTES do arquivo ser lido (Read
+	// abre o arquivo fisico na primeira chamada) - sem isso o stream usa a
+	// tabela padrao do processo, que nao decodifica UTF-8: cada caractere
+	// acentuado (2+ bytes no arquivo, ja que os .md sao UTF-8) virava 2+
+	// "caracteres" separados (string "estreita"/1 byte = 1 char) em vez de
+	// 1 codepoint Unicode. O texto parecia certo num terminal (que so
+	// repassa os bytes originais sem retraduzir), mas saia com o
+	// acentuado dobrado ("Ã©") na pagina CSP (que recodifica de verdade
+	// para UTF-8 na saida) - bug encontrado e corrigido em 12/09/2026, ver
+	// Guardian.RAG.RepairEncodingOnce para o reparo dos dados ja
+	// ingeridos antes desta correcao.
+	Set tFile.TranslateTable = "UTF8"
 	Set tSC = tFile.LinkToFile(pPath)
 	If $$$ISERR(tSC) {
 		Throw ##class(%Exception.StatusException).CreateFromStatus(tSC)
@@ -187,6 +199,8 @@ ClassMethod IngestFile(pPath As %String, pSource As %String, pTitle As %String, 
 ClassMethod IngestFileForComparison(pPath As %String, pDocumentId As %Integer) As %String
 {
 	Set tFile = ##class(%Stream.FileCharacter).%New()
+	// Ver comentario em IngestFile - mesma correcao de decodificacao UTF-8.
+	Set tFile.TranslateTable = "UTF8"
 	Set tSC = tFile.LinkToFile(pPath)
 	If $$$ISERR(tSC) {
 		Throw ##class(%Exception.StatusException).CreateFromStatus(tSC)
