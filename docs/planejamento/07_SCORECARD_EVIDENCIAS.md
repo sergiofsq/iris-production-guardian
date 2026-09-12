@@ -274,11 +274,39 @@ Detalhe completo em `02_FASE_1_PYPROD_INTEROPERABILITY.md` §6.
   observar o resultado".
 - Estado: **confirmado**.
 
+## Acesso a API pública — PublicHealth (+2, 11/09/2026)
+
+Detalhe completo no commit `67b00b9`; sem doc de fase dedicado (bônus
+implementado após a Fase 4, fora da janela de nenhum arquivo de fase
+existente).
+
+- Prova: `Guardian.Production.PublicHealthProduction` faz polling real
+  de `disease.sh/v3/covid-19/all` (API pública sem chave/autenticação)
+  via `Guardian.Adapter.PublicHealthPollAdapter` — adapter customizado
+  que estende `Ens.InboundAdapter`, autolimitado (a API não publica
+  header de rate limit, então o intervalo mínimo entre chamadas reais é
+  imposto pelo próprio adapter, não pelo framework). Cada poll real
+  (sucesso ou falha) gera uma mensagem `Guardian.Messages.PublicHealthSnapshot`
+  para `Guardian.Operation.PublicHealthOutputOperation`, única dona da
+  tabela `Guardian_PublicHealth.Snapshot`: grava linha "ao vivo" no
+  sucesso, ou cai para o último valor real conhecido rotulado como
+  cache (com idade calculada a partir do fetch original) na falha, ou
+  marca indisponibilidade honesta se não há cache ainda — nunca inventa
+  número.
+- Evidência: poll real contra `disease.sh` gravou uma linha ao vivo;
+  teste de falha forçada (endpoint trocado para um caminho inválido,
+  HTTP 404 real) corretamente acionou o fallback de cache com a idade
+  certa e o status HTTP que causou a queda, rotulado como tal; endpoint
+  correto restaurado depois e confirmado voltando a gravar ao vivo.
+- Estado: **confirmado**.
+
 ## Pendências ainda abertas (não testadas nesta rodada)
 
 - WSGI e PyProd: não são pendência técnica, são conflito estrutural com a
   premissa "COS first" (seção 1.1 do contexto) — WSGI é por definição uma
   interface Python; PyProd hospeda hosts em Python. Decisão do proprietário
   registrada: não perseguir esses dois bônus, manter tudo em COS.
-- Multimodelo, API pública: ainda não testados; dependem da arquitetura
-  de classes que será definida nas próximas fases.
+- Multimodelo: esqueleto iniciado 11/09/2026 (menu duplicado "RAG
+  Assistant (Gemini)" / "RAG Assistant (novo modelo)", `Guardian.UI.RAGAltPage`
+  ainda usando o mesmo backend Gemini) — não é evidência de bônus ainda,
+  falta escolher e integrar um segundo provedor de verdade.

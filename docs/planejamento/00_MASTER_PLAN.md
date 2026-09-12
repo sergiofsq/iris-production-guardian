@@ -21,12 +21,12 @@ exceção foi aplicada até aqui.
 
 | Fase | Arquivo | Status |
 |---|---|---|
-| Fase 0 — Setup e arquitetura | `01_FASE_0_SETUP_ARQUITETURA.md` | Infraestrutura e VRs críticos fechados. Só bônus (multimodelo/híbrida/API pública) pendentes — não bloqueiam as demais fases |
+| Fase 0 — Setup e arquitetura | `01_FASE_0_SETUP_ARQUITETURA.md` | Infraestrutura e VRs críticos fechados. Bônus híbrida e API pública fechados (ver Fases 3 e 5); só multimodelo (esqueleto iniciado) segue pendente — não bloqueia as demais fases |
 | Fase 1 — Production COS / interoperabilidade | `02_FASE_1_PYPROD_INTEROPERABILITY.md` | Completa, incluindo o bônus opcional — Service/Process/Operation com adaptador de arquivo, mensagem real ponta a ponta, cenário de falha/recuperação testado e reproduzível (`docs/experiments/01_falha_recuperacao_producao.md`), roteamento por Business Rules real (`Ens.Rule.Definition`) fechado em 10/09/2026, ver §6 do arquivo |
 | Fase 2 — Production Monitor / telemetria | `03_FASE_2_PRODUCTION_MONITOR_WSGI_TELEMETRY.md` | Concluída e validada visualmente. Reforço de 10/09/2026: série temporal persistida (`Guardian_Monitor.HealthSample`) e detecção de host travado, ver §6.1 |
 | Fase 3 — RAG Assistant | `04_FASE_3_RAG_ASSISTANT.md` | Completa e testada: ingestão, chunking, armazenamento vetorial, recuperação híbrida (vetorial + lexical via iFind, bônus +3, ver §4), geração com citação, abstenção calibrada, página de consulta. Validação visual concluída em 10/09/2026 (fundo/logo ajustados) |
-| Fase 4 — AI Investigator / IntegratedML / API | `05_FASE_4_AI_INVESTIGATOR_INTEGRATEDML_API.md` | AI Incident Investigator implementado e testado (10/09/2026): evidência real (saúde + eventos + documentação) + análise com IA, hipóteses separadas de observação, sem confiança inventada. IntegratedML bloqueado (VR-003) e API pública seguem fora do escopo |
-| Fase 5 — Hardening, testes, demo | `06_FASE_5_HARDENING_TESTS_DEMO.md` | Não iniciada |
+| Fase 4 — AI Investigator / IntegratedML / API | `05_FASE_4_AI_INVESTIGATOR_INTEGRATEDML_API.md` | AI Incident Investigator implementado e testado (10/09/2026): evidência real (saúde + eventos + documentação) + análise com IA, hipóteses separadas de observação, sem confiança inventada. IntegratedML bloqueado (VR-003), fora de escopo. API pública fechada 11/09/2026 fora desta fase — ver `07_SCORECARD_EVIDENCIAS.md` |
+| Fase 5 — Hardening, testes, demo | `06_FASE_5_HARDENING_TESTS_DEMO.md` | Iniciada 11/09/2026 — escopo definido, execução não começou (ver arquivo) |
 | Scorecard de evidências | `07_SCORECARD_EVIDENCIAS.md` | Ativo — atualizado a cada VR fechado |
 
 Os arquivos de fase ainda não criados serão adicionados quando a fase
@@ -44,7 +44,7 @@ desatualizado.
 | 20/09 | Demo completa, gravação, README, artigo, auditoria da matriz | README já existe (criado 09/09); gravação/artigo pendentes |
 | 21/09 | Conferência final e submissão | Não iniciada |
 
-**Leitura honesta:** o ritmo está bem adiantado em relação ao cronograma original — três fases (0, 1, 2) mais a Fase 3 (RAG) já têm versões funcionais testadas no dia 1 da janela de trabalho real. Isso é adiantamento de sequência, não validação de que não falta trabalho: bônus opcionais ainda em aberto (multimodelo, API pública — Business Rules e busca híbrida já fechados), hardening/testes formais, vídeo e artigo continuam por fazer.
+**Leitura honesta:** o ritmo está bem adiantado em relação ao cronograma original — três fases (0, 1, 2) mais a Fase 3 (RAG) já têm versões funcionais testadas no dia 1 da janela de trabalho real. Isso é adiantamento de sequência, não validação de que não falta trabalho: só multimodelo segue como bônus opcional em aberto (Business Rules, busca híbrida e API pública já fechados), hardening/testes formais, vídeo e artigo continuam por fazer.
 
 `VERIFY_REQUIRED`: horário/fuso oficial de corte da submissão — não
 presumir 23h59 (herdado do contexto, ainda aberto).
@@ -201,6 +201,13 @@ presumir 23h59 (herdado do contexto, ainda aberto).
   session` + `$system.OBJ.Load` (container reiniciou sozinho entre
   sessões — `Exited (137)`, causa não investigada, apenas religado com
   `docker start`). Ver `02_FASE_1_PYPROD_INTEROPERABILITY.md` §6.
+- **11/09/2026** — Fase 5 iniciada: escopo definido em
+  `06_FASE_5_HARDENING_TESTS_DEMO.md` (instalação a partir de checkout
+  limpo, testes formais dos quatro caminhos exigidos pelo DoD §11 —
+  percurso completo, falha de destino, falta de dados, indisponibilidade
+  de modelo/API —, auditoria de segredos, fechamento de pendências no
+  scorecard, gravação de vídeo, artigo da comunidade). Nenhum item de
+  execução concluído ainda; ordem de execução é decisão do proprietário.
 
 ## 5. Registro de pendências (VERIFY_REQUIRED)
 
@@ -213,7 +220,9 @@ Registro único em `07_SCORECARD_EVIDENCIAS.md`. Resumo do que segue aberto:
 - Multimodelo (formas reais de acesso por tipo).
 - ~~Pesquisa híbrida (lexical + vetorial)~~ — **fechada 10/09/2026**:
   iFind + RRF em `Guardian.RAG.Query`, ver `04_FASE_3_RAG_ASSISTANT.md` §6.
-- Acesso a API pública adequada.
+- ~~Acesso a API pública adequada~~ — **fechada 11/09/2026**: bônus
+  PublicHealth (`Guardian.Production.PublicHealthProduction` fazendo
+  polling real de `disease.sh`), ver `07_SCORECARD_EVIDENCIAS.md`.
 - ~~Provedor/modelo de IA para embeddings e geração~~ — **fechado
   09/09/2026**: Google Gemini API (tier gratuito), ver
   `04_FASE_3_RAG_ASSISTANT.md`.
@@ -273,11 +282,18 @@ temporal + host travado no Monitor, conjunto de avaliação + calibração +
 comparação de chunking no RAG, corpus ampliado (5→9 docs, incluindo
 documentação pública real), e Investigator testado nos três hosts da
 Production (incluindo um 503 real do Gemini tratado com resiliência).
-Pendências que restam: IntegratedML (bloqueado, VR-003), API pública
-(bônus, não iniciada), multimodelo (bônus, não iniciada), decisão de
-provedor de IA (Gemini free tier segue instável — vários timeouts/503
-reais observados ao longo dos testes de 10/09), horário/fuso da
+API pública (bônus PublicHealth) fechada 11/09/2026. UI redesenhada
+para sidebar persistente (`3a850cc`, 11/09/2026) — uma tentativa
+seguinte de abrir Investigator/RAG como modal flutuante foi revertida
+no mesmo dia por problemas de UX (ver histórico de commits em torno de
+`c737244`; não é uma decisão de fase, não tem doc dedicado).
+Pendências que restam: IntegratedML (bloqueado, VR-003), multimodelo
+(bônus — esqueleto de menu/página duplicada iniciado 11/09/2026, ainda
+sem segundo provedor de IA de verdade integrado), decisão de qual será
+esse segundo provedor (Gemini free tier segue instável — vários
+timeouts/429/503 reais observados ao longo dos testes), horário/fuso da
 submissão e interpretação do teto de bônus (ambos `VERIFY_REQUIRED`
-ainda abertos, dependem da organização do concurso), e a Fase 5 inteira
-(hardening, testes formais, gravação do vídeo, artigo) — ainda não
-iniciada.
+ainda abertos, dependem da organização do concurso), e a Fase 5
+(hardening, testes formais, gravação do vídeo, artigo) — escopo
+definido em `06_FASE_5_HARDENING_TESTS_DEMO.md`, execução ainda não
+começou.
