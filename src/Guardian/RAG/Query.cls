@@ -164,10 +164,18 @@ ClassMethod Retrieve(pQuestion As %String) As %DynamicObject
 /// controlando exclusivamente o corpus de documentos - ver comentario do
 /// parametro - a investigacao e uma fonte de grounding independente, coletada
 /// como evidencia real por Guardian.Investigator.EvidenceCollector).
-ClassMethod Ask(pQuestion As %String, pInvestigationContext As %String = "") As %DynamicObject
+/// pLang ("pt" ou "en", default "pt"): idioma da resposta gerada e da
+/// mensagem de abstencao - preferencia do visitante (Guardian.UI.I18n),
+/// repassada aqui em vez de importada diretamente para o pacote RAG nao
+/// depender do pacote UI. Os documentos recuperados continuam no idioma em
+/// que foram indexados (pt ou en, corpus misto) - o prompt pede
+/// explicitamente para a RESPOSTA (nao a citacao literal) sair no idioma
+/// pedido mesmo assim.
+ClassMethod Ask(pQuestion As %String, pInvestigationContext As %String = "", pLang As %String = "pt") As %DynamicObject
 {
 	Set tResult = {}
 	Set tResult.question = pQuestion
+	Set tEn = (pLang = "en")
 
 	Set tRetrieval = ..Retrieve(pQuestion)
 	Set tResult.sources = tRetrieval.sources
@@ -178,27 +186,41 @@ ClassMethod Ask(pQuestion As %String, pInvestigationContext As %String = "") As 
 
 	If 'tHasDocs && 'tHasInvestigation {
 		Set tResult.abstained = 1
-		Set tResult.answer = "Não há informação suficiente na base indexada para responder com confiança a esta pergunta."
+		Set tResult.answer = $Select(tEn:
+			"There isn't enough information in the indexed corpus to answer this question with confidence.", 1:
+			"Não há informação suficiente na base indexada para responder com confiança a esta pergunta.")
 		Quit tResult
 	}
 
-	Set tPrompt =
-		"Você é o assistente de resolução de incidentes do IRIS Production Guardian. " _
-		"Responda a pergunta usando APENAS as informações fornecidas abaixo (a investigação de incidente atual e/ou a documentação indexada). " _
-		"Se nenhuma das duas for suficiente, diga explicitamente que não sabe - não invente. " _
-		"Dê uma resposta prática e acionável: liste os passos em ordem, e sempre que a documentação indicar um caminho de menu do Management Portal, uma tela, um botão ou um comando, cite esse caminho/comando literalmente (ex.: 'Interoperability -> Configure -> Production', 'Message Viewer -> selecionar a mensagem -> Resend'). " _
-		"Cite a fonte de cada afirmação: 'a investigação atual' para dados vindos do AI Incident Investigator, ou o texto entre colchetes [Fonte: ...] para documentos." _
-		$Char(10, 10)
+	If tEn {
+		Set tPrompt =
+			"You are the incident-resolution assistant for IRIS Production Guardian. " _
+			"Answer the question using ONLY the information provided below (the current incident investigation and/or the indexed documentation). " _
+			"If neither is sufficient, explicitly say you don't know - do not invent. " _
+			"Give a practical, actionable answer: list the steps in order, and whenever the documentation names a Management Portal menu path, screen, button or command, quote that path/command literally (e.g. 'Interoperability -> Configure -> Production', 'Message Viewer -> select the message -> Resend'). " _
+			"Answer in English regardless of the language of the source material below. " _
+			"Cite the source of each statement: 'the current investigation' for data from the AI Incident Investigator, or the text in brackets [Source: ...] for documents." _
+			$Char(10, 10)
+	} Else {
+		Set tPrompt =
+			"Você é o assistente de resolução de incidentes do IRIS Production Guardian. " _
+			"Responda a pergunta usando APENAS as informações fornecidas abaixo (a investigação de incidente atual e/ou a documentação indexada). " _
+			"Se nenhuma das duas for suficiente, diga explicitamente que não sabe - não invente. " _
+			"Dê uma resposta prática e acionável: liste os passos em ordem, e sempre que a documentação indicar um caminho de menu do Management Portal, uma tela, um botão ou um comando, cite esse caminho/comando literalmente (ex.: 'Interoperability -> Configure -> Production', 'Message Viewer -> selecionar a mensagem -> Resend'). " _
+			"Responda em português, mesmo que o material-fonte abaixo esteja em outro idioma. " _
+			"Cite a fonte de cada afirmação: 'a investigação atual' para dados vindos do AI Incident Investigator, ou o texto entre colchetes [Fonte: ...] para documentos." _
+			$Char(10, 10)
+	}
 
 	If tHasInvestigation {
-		Set tPrompt = tPrompt _ "INVESTIGAÇÃO ATUAL (AI Incident Investigator - evidência real coletada e análise já geradas para este incidente):" _ $Char(10) _ pInvestigationContext _ $Char(10, 10)
+		Set tPrompt = tPrompt _ $Select(tEn:"CURRENT INVESTIGATION (AI Incident Investigator - real evidence and analysis already generated for this incident):", 1:"INVESTIGAÇÃO ATUAL (AI Incident Investigator - evidência real coletada e análise já geradas para este incidente):") _ $Char(10) _ pInvestigationContext _ $Char(10, 10)
 	}
 
 	If tHasDocs {
-		Set tPrompt = tPrompt _ "DOCUMENTAÇÃO INDEXADA:" _ $Char(10) _ tRetrieval.contextText _ $Char(10)
+		Set tPrompt = tPrompt _ $Select(tEn:"INDEXED DOCUMENTATION:", 1:"DOCUMENTAÇÃO INDEXADA:") _ $Char(10) _ tRetrieval.contextText _ $Char(10)
 	}
 
-	Set tPrompt = tPrompt _ $Char(10) _ "PERGUNTA: " _ pQuestion
+	Set tPrompt = tPrompt _ $Char(10) _ $Select(tEn:"QUESTION: ", 1:"PERGUNTA: ") _ pQuestion
 
 	Set tResult.abstained = 0
 	Set tResult.answer = ##class(Guardian.RAG.GeminiClient).Generate(tPrompt)

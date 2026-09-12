@@ -50,11 +50,14 @@ ClassMethod OnPage() As %Status
 	// So sugere a pergunta quando o usuario ainda nao digitou nenhuma -
 	// nunca sobrescreve o que a pessoa esta perguntando.
 	If tHasInvestigation && (tQuestion = "") {
-		Set tQuestion = "Como resolver o problema investigado em " _ tInvComponent _ "?"
+		Set tQuestion = ##class(Guardian.UI.I18n).T("rag.suggested_question") _ tInvComponent _ "?"
 	}
 
+	Set tHtmlLang = ##class(Guardian.UI.I18n).HtmlLang()
+	Set tThemeAttr = ##class(Guardian.UI.I18n).ThemeAttr()
+
 	&html<<!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="#(tHtmlLang)#"#(tThemeAttr)#>
 <head>
 <meta charset="utf-8">
 <title>IRIS Production Guardian - RAG Assistant (novo modelo)</title>
@@ -86,24 +89,25 @@ ClassMethod OnPage() As %Status
 	Do ##class(Guardian.UI.Shared).RenderSidebar("ragalt")
 
 	&html<<main class="ig-main">
-<h1>RAG Assistant (novo modelo)</h1>>
+<h1>#(##class(Guardian.UI.I18n).T("nav.ragalt"))#</h1>>
 
 	If tHasInvestigation {
 		Set tAnalysisFmt = $Select($Length(tInvAnalysis) > 600:$Extract(tInvAnalysis, 1, 600) _ "…", 1:tInvAnalysis)
+		Set tWindowMeta = $Replace(##class(Guardian.UI.I18n).T("rag.window_meta"), "#N#", tInvWindow)
 		&html<<div class="investigation-context">
-	<div class="ic-title">Contexto: última investigação (AI Incident Investigator)</div>
-	<div class="ic-meta">Componente: <strong>#(tInvComponent)#</strong> &middot; janela #(tInvWindow)# min &middot; #(tInvCreatedAt)#</div>
+	<div class="ic-title">#(##class(Guardian.UI.I18n).T("rag.investigation_context_title"))#</div>
+	<div class="ic-meta">#(##class(Guardian.UI.I18n).T("rag.component_label"))# <strong>#(tInvComponent)#</strong> &middot; #(tWindowMeta)# &middot; #(tInvCreatedAt)#</div>
 	<div class="ic-analysis">#(##class(Guardian.UI.Shared).FormatText(tAnalysisFmt))#</div>
 </div>>
 	}
 
 	&html<<form method="get">
-	<input type="text" name="q" placeholder="Pergunte sobre o projeto..." value="#(tQuestion)#" autofocus>
-	<button type="submit" data-loading-text="Perguntando...">Perguntar</button>
+	<input type="text" name="q" placeholder="#(##class(Guardian.UI.I18n).T("rag.placeholder"))#" value="#(tQuestion)#" autofocus>
+	<button type="submit" data-loading-text="#(##class(Guardian.UI.I18n).T("rag.submit_loading"))#">#(##class(Guardian.UI.I18n).T("rag.submit"))#</button>
 </form>
 <div class="ig-loading" id="ig-loading" hidden>
 	<img src="/csp/guardian/iris-guardian-spinner.png" alt="" class="ig-loading-emblem">
-	<span>Consultando a IA e os documentos indexados... isso pode levar alguns segundos.</span>
+	<span>#(##class(Guardian.UI.I18n).T("rag.loading_banner"))#</span>
 </div>
 <script>
 (function () {
@@ -130,14 +134,14 @@ ClassMethod OnPage() As %Status
 			// pessoa ler na tela) - e nela que estao os PROXIMOS PASSOS
 			// SUGERIDOS que respondem "como resolver".
 			Set tInvContextForAsk = $Select(tHasInvestigation:tInvAnalysis, 1:"")
-			Set tResp = ##class(Guardian.RAG.Query).Ask(tQuestion, tInvContextForAsk)
+			Set tResp = ##class(Guardian.RAG.Query).Ask(tQuestion, tInvContextForAsk, ##class(Guardian.UI.I18n).Lang())
 		} Catch ex {
 			// Indisponibilidade do modelo de IA nao deve derrubar a pagina
 			// nem esconder o problema - mostra o erro real, sem inventar
 			// uma resposta.
 			Set tResp = {}
 			Set tResp.abstained = 1
-			Set tResp.answer = "Não foi possível consultar o modelo de IA agora (" _ ex.DisplayString() _ "). Tente novamente em instantes."
+			Set tResp.answer = ##class(Guardian.UI.I18n).T("rag.model_unavailable") _ ex.DisplayString() _ ##class(Guardian.UI.I18n).T("rag.model_unavailable_suffix")
 			Set tResp.sources = []
 		}
 		Set tHasAnswer = 1
@@ -148,12 +152,12 @@ ClassMethod OnPage() As %Status
 </div>>
 
 		If (tResp.abstained = 0) && (tResp.sources.%Size() > 0) {
-			&html<<div class="sources"><strong>Fontes usadas:</strong>>
+			&html<<div class="sources"><strong>#(##class(Guardian.UI.I18n).T("rag.sources_used"))#</strong>>
 			Set tIter = tResp.sources.%GetIterator()
 			While tIter.%GetNext(.tKey, .tSrc) {
 				Set tSimFmt = $FNumber(tSrc.similarity, "", 3)
 				&html<<div class="source">
-	<span class="src-sim">similaridade: #(tSimFmt)#</span>
+	<span class="src-sim">#(##class(Guardian.UI.I18n).T("rag.similarity"))# #(tSimFmt)#</span>
 	<span class="src-title">#(##class(Guardian.UI.Shared).FormatText(tSrc.title))#</span> (#($ZConvert(tSrc.source, "O", "HTML"))#)
 	<div class="src-text">#(##class(Guardian.UI.Shared).FormatText(tSrc.chunkText))#</div>
 </div>>
@@ -163,11 +167,7 @@ ClassMethod OnPage() As %Status
 	}
 
 	&html<<div class="note">
-	Placeholder do segundo provedor de LLM (ainda nao escolhido) - por enquanto
-	responde com o mesmo backend do RAG Assistant (Gemini): apenas os documentos
-	indexados deste projeto, sem inventar informacao fora do contexto recuperado,
-	e responde "nao sei" quando a similaridade com a base e baixa. Limiar atual
-	de abstencao: 0.58 (heuristica inicial, ver docs/planejamento/04_FASE_3_RAG_ASSISTANT.md).
+	#(##class(Guardian.UI.I18n).T("ragalt.note"))#
 </div>>
 
 	&html<</main>

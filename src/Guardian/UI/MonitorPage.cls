@@ -10,9 +10,11 @@ Parameter CHARSET = "utf-8";
 ClassMethod OnPage() As %Status
 {
 	Set tData = ##class(Guardian.Monitor.StatusCollector).Collect()
+	Set tHtmlLang = ##class(Guardian.UI.I18n).HtmlLang()
+	Set tThemeAttr = ##class(Guardian.UI.I18n).ThemeAttr()
 
 	&html<<!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="#(tHtmlLang)#"#(tThemeAttr)#>
 <head>
 <meta charset="utf-8">
 <meta http-equiv="refresh" content="10">
@@ -52,16 +54,16 @@ ClassMethod OnPage() As %Status
 	&html<<main class="ig-main">
 <h1>Production Monitor</h1>
 <div class="meta">
-	Production: <strong>#(tData.production)#</strong> &middot;
-	Estado: <strong>#(tData.productionState)#</strong> &middot;
-	Coletado em: <strong>#(tData.collectedAt)#</strong> (atualiza a cada 10s)
+	#(##class(Guardian.UI.I18n).T("monitor.meta_production"))# <strong>#(tData.production)#</strong> &middot;
+	#(##class(Guardian.UI.I18n).T("monitor.meta_state"))# <strong>#(tData.productionState)#</strong> &middot;
+	#(##class(Guardian.UI.I18n).T("monitor.meta_collected"))# <strong>#(tData.collectedAt)#</strong> #(##class(Guardian.UI.I18n).T("monitor.meta_refresh"))#
 </div>
 <div class="columns">>
 
 	Set tTypes = $ListBuild("Service", "Process", "Operation")
-	Set tLabels("Service") = "Hosts de entrada (Service)"
-	Set tLabels("Process") = "Hosts de processamento (Process)"
-	Set tLabels("Operation") = "Hosts de saida (Operation)"
+	Set tLabels("Service") = ##class(Guardian.UI.I18n).T("monitor.col_service")
+	Set tLabels("Process") = ##class(Guardian.UI.I18n).T("monitor.col_process")
+	Set tLabels("Operation") = ##class(Guardian.UI.I18n).T("monitor.col_operation")
 
 	For tI = 1:1:$ListLength(tTypes) {
 		Set tType = $List(tTypes, tI)
@@ -73,16 +75,17 @@ ClassMethod OnPage() As %Status
 			If tHost.type = tType {
 				Set tCount = tCount + 1
 				Set tHealth = tHost.health
+				Set tHealthLabel = ##class(Guardian.UI.I18n).HealthLabel(tHealth)
 				&html<<div class="card #(tHealth)#">
 	<div class="name">#(tHost.name)#</div>
-	<span class="badge #(tHealth)#">#(tHealth)#</span>>
+	<span class="badge #(tHealth)#">#(tHealthLabel)#</span>>
 				If tHost.stuck {
-					&html<<span class="badge stuck">travado</span>>
+					&html<<span class="badge stuck">#(##class(Guardian.UI.I18n).HealthLabel("stuck"))#</span>>
 				}
 				&html<<div class="stats">
-		Fila: #(tHost.queueCount)# &middot;
-		Mensagens: #(tHost.messageCount)# &middot;
-		Erros recentes: #(tHost.recentErrorCount)#
+		#(##class(Guardian.UI.I18n).T("monitor.queue"))# #(tHost.queueCount)# &middot;
+		#(##class(Guardian.UI.I18n).T("monitor.messages"))# #(tHost.messageCount)# &middot;
+		#(##class(Guardian.UI.I18n).T("monitor.recent_errors"))# #(tHost.recentErrorCount)#
 	</div>>
 				Set tTrend = ##class(Guardian.Monitor.StatusCollector).RecentSamples(tHost.name, 10)
 				If tTrend.%Size() > 1 {
@@ -91,26 +94,24 @@ ClassMethod OnPage() As %Status
 					While tTrendIter.%GetNext(.tTrendKey, .tSample) {
 						Set tTrendStr = tTrendStr _ $Select(tTrendStr'="":", ", 1:"") _ tSample.queueCount
 					}
-					&html<<div class="trend">tendência de fila (#(tTrend.%Size())# amostras): #(tTrendStr)#</div>>
+					Set tTrendLabel = $Replace(##class(Guardian.UI.I18n).T("monitor.trend"), "#N#", tTrend.%Size())
+					&html<<div class="trend">#(tTrendLabel)# #(tTrendStr)#</div>>
 				}
 				&html<</div>>
 			}
 		}
 		If tCount = 0 {
-			&html<<div class="empty">Nenhum host deste tipo.</div>>
+			&html<<div class="empty">#(##class(Guardian.UI.I18n).T("monitor.no_hosts_type"))#</div>>
 		}
 		&html<</div>>
 	}
 
+	Set tLegend = ##class(Guardian.UI.I18n).T("monitor.legend")
+	Set tLegend = $Replace(tLegend, "#WINDOW#", tData.errorWindowSeconds)
+
 	&html<</div>
 <div class="demo-note">
-	Estados: <strong>healthy</strong> = sem fila pendente e sem erro recente &middot;
-	<strong>degraded</strong> = fila pendente ou erro nos ultimos #(tData.errorWindowSeconds)# segundos &middot;
-	<strong>unavailable</strong> = host desabilitado ou Production parada &middot;
-	<strong>unknown</strong> = nenhuma mensagem registrada ainda para este host (ausencia de dado nao e saude) &middot;
-	<strong>travado</strong> = fila positiva e sem esvaziar nas ultimas 3 amostras persistidas.
-	Serie temporal persistida a cada carregamento desta pagina ou chamada da API (/api/guardian/status) -
-	sem coletor agendado independente nesta v1.
+	#(tLegend)#
 </div>
 </main>
 </div>

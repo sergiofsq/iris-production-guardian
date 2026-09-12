@@ -20,11 +20,13 @@
 
   /* Neutros e "chrome" da aplicacao (fundo/header): azul medio deliberado -
      nem o vivido original (#0a1965 puro), nem branco estourado. Paleta
-     unica e fixa (sem depender de prefers-color-scheme), para nao variar
-     de forma imprevisivel com o modo claro/escuro do sistema operacional
-     do usuario - decisao de 10/09/2026 apos o primeiro fundo ter ficado
-     "vivo" demais e a tentativa seguinte, dependente de dark-mode do SO,
-     ter ficado com contraste ruim (texto escuro sobre fundo escuro). */
+     unica e fixa por tema (sem depender de prefers-color-scheme do SO -
+     decisao de 10/09/2026 apos o primeiro fundo ter ficado "vivo" demais e
+     a tentativa seguinte, dependente de dark-mode do SO, ter ficado com
+     contraste ruim). 12/09/2026: agora existem DUAS paletas fixas - esta
+     (clara, o padrao) e a de "[data-theme="dark"]" mais abaixo - trocadas
+     por um botao explicito na sidebar (Guardian.UI.Shared), nunca pelo
+     tema do SO. */
   --ig-white: #ffffff;
   --ig-bg: #3f63a8;
   --ig-bg-strong: #2f4d85;
@@ -52,6 +54,22 @@
   --ig-radius: 10px;
   --ig-radius-sm: 6px;
   --ig-shadow: 0 1px 2px rgba(10, 25, 101, 0.06), 0 4px 16px rgba(10, 25, 101, 0.08);
+}
+
+/* Paleta escura (12/09/2026) - trocada explicitamente pelo botao de tema na
+   sidebar (nunca por prefers-color-scheme, ver comentario acima). Mesmos
+   tokens do :root, so os valores mudam - qualquer regra que ja usa var(--ig-*)
+   funciona automaticamente nos dois temas, sem tocar em nenhum outro CSS. */
+:root[data-theme="dark"] {
+  --ig-bg: #10152b;
+  --ig-bg-strong: #0a0e20;
+  --ig-on-bg-text: #eef1fa;
+  --ig-on-bg-muted: #93a1c2;
+  --ig-surface: #1a2140;
+  --ig-tint: #202850;
+  --ig-border: #333d68;
+  --ig-text: #e8ecf7;
+  --ig-text-muted: #9aa4c4;
 }
 
 * {
@@ -196,6 +214,39 @@ body {
   align-self: flex-start;
   height: 100vh;
   overflow-y: auto;
+}
+
+/* Botoes discretos de tema (claro/escuro) e idioma (pt/en) - 12/09/2026,
+   ver Guardian.UI.Shared.RenderSidebar. Icones pequenos, sem texto grande,
+   de proposito discretos (pedido do usuario) - preferencia gravada em
+   cookie (ig_theme/ig_lang) e lida no servidor (Guardian.UI.I18n) para a
+   pagina ja nascer no tema/idioma certo, sem esperar JS rodar. */
+.ig-toolbar {
+  display: flex;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.ig-icon-btn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--ig-on-bg-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.ig-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--ig-on-bg-text);
 }
 
 .ig-sidebar .ig-logo-badge {

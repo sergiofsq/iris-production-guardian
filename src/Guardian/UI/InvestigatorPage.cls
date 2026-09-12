@@ -25,8 +25,11 @@ ClassMethod OnPage() As %Status
 	// mesma fonte de verdade do Monitor (Fase 2).
 	Set tStatus = ##class(Guardian.Monitor.StatusCollector).Collect()
 
+	Set tHtmlLang = ##class(Guardian.UI.I18n).HtmlLang()
+	Set tThemeAttr = ##class(Guardian.UI.I18n).ThemeAttr()
+
 	&html<<!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="#(tHtmlLang)#"#(tThemeAttr)#>
 <head>
 <meta charset="utf-8">
 <title>IRIS Production Guardian - AI Incident Investigator</title>
@@ -70,11 +73,11 @@ ClassMethod OnPage() As %Status
 
 	&html<<main class="ig-main">
 <h1>AI Incident Investigator</h1>
-<div class="subtitle">Evidência real (métricas, eventos e documentação) + análise assistida por IA. Só leitura - nenhuma remediação automática.</div>
+<div class="subtitle">#(##class(Guardian.UI.I18n).T("investigator.subtitle"))#</div>
 <form method="get">
-	<label for="component">Componente</label>
+	<label for="component">#(##class(Guardian.UI.I18n).T("investigator.component_label"))#</label>
 	<select name="component" id="component">
-		<option value="">Selecione...</option>>
+		<option value="">#(##class(Guardian.UI.I18n).T("investigator.select"))#</option>>
 
 	Set tIter = tStatus.hosts.%GetIterator()
 	While tIter.%GetNext(.tKey, .tHost) {
@@ -83,13 +86,13 @@ ClassMethod OnPage() As %Status
 	}
 
 	&html<</select>
-	<label for="window">Janela (minutos)</label>
+	<label for="window">#(##class(Guardian.UI.I18n).T("investigator.window_label"))#</label>
 	<input type="number" name="window" id="window" min="1" value="#(tWindowMinutes)#">
-	<button type="submit" data-loading-text="Investigando...">Investigar</button>
+	<button type="submit" data-loading-text="#(##class(Guardian.UI.I18n).T("investigator.submit_loading"))#">#(##class(Guardian.UI.I18n).T("investigator.submit"))#</button>
 </form>
 <div class="ig-loading" id="ig-loading" hidden>
 	<img src="/csp/guardian/iris-guardian-spinner.png" alt="" class="ig-loading-emblem">
-	<span>Coletando evidência e analisando com IA... isso pode levar alguns segundos.</span>
+	<span>#(##class(Guardian.UI.I18n).T("investigator.loading_banner"))#</span>
 </div>
 <script>
 (function () {
@@ -109,7 +112,7 @@ ClassMethod OnPage() As %Status
 </script>>
 
 	If (tComponent '= "") {
-		Set tResult = ##class(Guardian.Investigator.Analyzer).Investigate(tComponent, tWindowMinutes)
+		Set tResult = ##class(Guardian.Investigator.Analyzer).Investigate(tComponent, tWindowMinutes, ##class(Guardian.UI.I18n).Lang())
 		Set tEvidence = tResult.evidence
 
 		// Persiste a investigacao para poder revisar depois (aceite do
@@ -128,21 +131,22 @@ ClassMethod OnPage() As %Status
 			// demais paginas (indisponibilidade nao derruba a pagina).
 		}
 
-		&html<<h2>Saúde atual</h2>>
+		&html<<h2>#(##class(Guardian.UI.I18n).T("investigator.h2_health"))#</h2>>
 		If $IsObject(tEvidence.health) {
+			Set tHealthLabel = ##class(Guardian.UI.I18n).HealthLabel(tEvidence.health.health)
 			&html<<div class="card">
-	<span class="badge #(tEvidence.health.health)#">#(tEvidence.health.health)#</span>
-	&nbsp; Fila: #(tEvidence.health.queueCount)# &middot;
-	Mensagens: #(tEvidence.health.messageCount)# &middot;
-	Erros recentes: #(tEvidence.health.recentErrorCount)#
+	<span class="badge #(tEvidence.health.health)#">#(tHealthLabel)#</span>
+	&nbsp; #(##class(Guardian.UI.I18n).T("monitor.queue"))# #(tEvidence.health.queueCount)# &middot;
+	#(##class(Guardian.UI.I18n).T("monitor.messages"))# #(tEvidence.health.messageCount)# &middot;
+	#(##class(Guardian.UI.I18n).T("monitor.recent_errors"))# #(tEvidence.health.recentErrorCount)#
 </div>>
 		} Else {
-			&html<<div class="empty">Componente não encontrado na Production monitorada.</div>>
+			&html<<div class="empty">#(##class(Guardian.UI.I18n).T("investigator.component_not_found"))#</div>>
 		}
 
-		&html<<h2>Eventos na janela (#(tEvidence.eventCount)#)</h2>>
+		&html<<h2>#(##class(Guardian.UI.I18n).T("investigator.h2_events"))# (#(tEvidence.eventCount)#)</h2>>
 		If tEvidence.eventCount = 0 {
-			&html<<div class="empty">Nenhum evento registrado nesta janela.</div>>
+			&html<<div class="empty">#(##class(Guardian.UI.I18n).T("investigator.no_events"))#</div>>
 		} Else {
 			&html<<div class="card">>
 			Set tEvIter = tEvidence.events.%GetIterator()
@@ -152,28 +156,28 @@ ClassMethod OnPage() As %Status
 				If tEv.hasError {
 					&html<<div class="evt-error">#($ZConvert(tEv.%Get("errorText"), "O", "HTML"))#</div>>
 				} Else {
-					&html<<div class="evt-ok">sucesso</div>>
+					&html<<div class="evt-ok">#(##class(Guardian.UI.I18n).T("investigator.success"))#</div>>
 				}
 				&html<</div>>
 			}
 			&html<</div>>
 		}
 
-		&html<<h2>Análise</h2>>
+		&html<<h2>#(##class(Guardian.UI.I18n).T("investigator.h2_analysis"))#</h2>>
 		Set tBoxClass = $Select(tResult.modelAvailable:"answer-box", 1:"answer-box unavailable")
 		&html<<div class="#(tBoxClass)#">
 	<div class="answer-text">#(##class(Guardian.UI.Shared).FormatText(tResult.analysis))#</div>
 </div>>
 
-		&html<<h2>Documentação relacionada</h2>>
+		&html<<h2>#(##class(Guardian.UI.I18n).T("investigator.h2_docs"))#</h2>>
 		If tEvidence.documents.%Size() = 0 {
-			&html<<div class="empty">Nenhum documento relevante encontrado.</div>>
+			&html<<div class="empty">#(##class(Guardian.UI.I18n).T("investigator.no_docs"))#</div>>
 		} Else {
 			Set tDocIter = tEvidence.documents.%GetIterator()
 			While tDocIter.%GetNext(.tDocKey, .tDoc) {
 				Set tSimFmt = $FNumber(tDoc.similarity, "", 3)
 				&html<<div class="source">
-	<span class="src-sim">similaridade: #(tSimFmt)#</span>
+	<span class="src-sim">#(##class(Guardian.UI.I18n).T("rag.similarity"))# #(tSimFmt)#</span>
 	<span class="src-title">#(##class(Guardian.UI.Shared).FormatText(tDoc.title))#</span> (#($ZConvert(tDoc.source, "O", "HTML"))#)
 	<div class="src-text">#(##class(Guardian.UI.Shared).FormatText(tDoc.chunkText))#</div>
 </div>>
@@ -182,9 +186,7 @@ ClassMethod OnPage() As %Status
 	}
 
 	&html<<div class="note">
-	Análise gerada por IA (Google Gemini) a partir apenas da evidência real coletada acima -
-	não inventa eventos nem percentual de confiança, e separa observação de hipótese. Investigação
-	somente leitura - nenhuma correção é aplicada automaticamente.
+	#(##class(Guardian.UI.I18n).T("investigator.note"))#
 </div>
 </main>
 </div>
