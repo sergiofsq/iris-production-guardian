@@ -201,14 +201,16 @@ body {
 .ig-sidebar .ig-logo-badge {
   background: var(--ig-white);
   border-radius: var(--ig-radius-sm);
-  padding: 0.35rem 0.75rem;
+  padding: 0.5rem 1rem;
   box-shadow: var(--ig-shadow);
   display: flex;
+  justify-content: center;
   width: fit-content;
+  margin: 0 auto;
 }
 
 .ig-sidebar .ig-logo-badge img {
-  height: 44px;
+  height: 56px;
   width: auto;
   display: block;
 }

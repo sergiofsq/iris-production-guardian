@@ -3,6 +3,11 @@
 /// HTML simples (POST/GET), sem JS - a geracao pode levar alguns
 /// segundos (modelo com raciocinio interno), entao um recarregamento de
 /// pagina e mais robusto que uma chamada assincrona.
+///
+/// 11/09/2026: quando ha uma investigacao recente do Investigator
+/// (Guardian_Investigator.Investigation), mostra o resultado dela acima do
+/// formulario e sugere uma pergunta pronta - faz sentido usar o RAG para
+/// pedir ajuda de resolucao logo depois de investigar um incidente.
 Class Guardian.UI.RAGPage Extends %CSP.Page
 {
 
@@ -12,6 +17,35 @@ ClassMethod OnPage() As %Status
 {
 	Set tQuestion = $Get(%request.Data("q", 1))
 	Set tHasAnswer = 0
+
+	// Ultima investigacao feita no AI Incident Investigator (se houver) -
+	// mesma tabela que Guardian.UI.InvestigatorPage grava. So leitura: se a
+	// consulta falhar ou a tabela ainda nao tiver linhas, o RAG segue
+	// funcionando normalmente sem o contexto.
+	Set tHasInvestigation = 0
+	Set tInvStmt = ##class(%SQL.Statement).%New()
+	// CreatedAt convertido explicitamente para VARCHAR: %Get() num TIMESTAMP
+	// devolve o valor logico interno (nao a string ODBC legivel) nesta
+	// versao do IRIS - CAST forca a representacao de exibicao.
+	Set tInvSC = tInvStmt.%Prepare(
+		"SELECT TOP 1 Component, WindowMinutes, CAST(CreatedAt AS VARCHAR(30)) AS CreatedAt, Analysis " _
+		"FROM Guardian_Investigator.Investigation ORDER BY CreatedAt DESC")
+	If tInvSC = 1 {
+		Set tInvRS = tInvStmt.%Execute()
+		If tInvRS.%Next() {
+			Set tHasInvestigation = 1
+			Set tInvComponent = tInvRS.%Get("Component")
+			Set tInvWindow = tInvRS.%Get("WindowMinutes")
+			Set tInvCreatedAt = tInvRS.%Get("CreatedAt")
+			Set tInvAnalysis = tInvRS.%Get("Analysis")
+		}
+	}
+
+	// So sugere a pergunta quando o usuario ainda nao digitou nenhuma -
+	// nunca sobrescreve o que a pessoa esta perguntando.
+	If tHasInvestigation && (tQuestion = "") {
+		Set tQuestion = "Como resolver o problema investigado em " _ tInvComponent _ "?"
+	}
 
 	&html<<!DOCTYPE html>
 <html lang="pt-BR">
@@ -26,6 +60,10 @@ ClassMethod OnPage() As %Status
 	input[type=text] { flex: 1; padding: 0.6rem 0.8rem; border-radius: var(--ig-radius-sm); border: 1px solid var(--ig-border); background: var(--ig-surface); color: var(--ig-text); font-size: 1rem; }
 	button { padding: 0.6rem 1.2rem; border-radius: var(--ig-radius-sm); border: none; background: var(--ig-teal-500); color: var(--ig-navy-900); font-weight: 600; cursor: pointer; }
 	button:hover { background: var(--ig-teal-700); color: var(--ig-white); }
+	.investigation-context { background: var(--ig-tint); border: 1px solid var(--ig-border); border-left: 4px solid var(--ig-teal-500); border-radius: var(--ig-radius-sm); padding: 0.85rem 1rem; margin-bottom: 1.25rem; font-size: 0.85rem; }
+	.investigation-context .ic-title { font-weight: 600; color: var(--ig-teal-700); margin-bottom: 0.3rem; }
+	.investigation-context .ic-meta { color: var(--ig-text-muted); font-size: 0.78rem; margin-bottom: 0.5rem; }
+	.investigation-context .ic-analysis { white-space: pre-wrap; color: var(--ig-text); max-height: 160px; overflow-y: auto; }
 	.answer-box { background: var(--ig-surface); border: 1px solid var(--ig-border); box-shadow: var(--ig-shadow); border-radius: var(--ig-radius); padding: 1.25rem; margin-bottom: 1.5rem; border-left: 4px solid var(--ig-teal-500); }
 	.answer-box.abstained { border-left-color: var(--ig-status-unknown); }
 	.answer-text { white-space: pre-wrap; line-height: 1.5; color: var(--ig-text); }
@@ -42,8 +80,18 @@ ClassMethod OnPage() As %Status
 	Do ##class(Guardian.UI.Shared).RenderSidebar("rag")
 
 	&html<<main class="ig-main">
-<h1>RAG Assistant</h1>
-<form method="get">
+<h1>RAG Assistant</h1>>
+
+	If tHasInvestigation {
+		Set tAnalysisFmt = $Select($Length(tInvAnalysis) > 600:$Extract(tInvAnalysis, 1, 600) _ "…", 1:tInvAnalysis)
+		&html<<div class="investigation-context">
+	<div class="ic-title">Contexto: última investigação (AI Incident Investigator)</div>
+	<div class="ic-meta">Componente: <strong>#(tInvComponent)#</strong> &middot; janela #(tInvWindow)# min &middot; #(tInvCreatedAt)#</div>
+	<div class="ic-analysis">#(tAnalysisFmt)#</div>
+</div>>
+	}
+
+	&html<<form method="get">
 	<input type="text" name="q" placeholder="Pergunte sobre o projeto..." value="#(tQuestion)#" autofocus>
 	<button type="submit">Perguntar</button>
 </form>>
@@ -87,8 +135,9 @@ ClassMethod OnPage() As %Status
 	Respostas geradas por IA (Google Gemini) a partir apenas dos documentos indexados deste projeto -
 	nao inventa informacao fora do contexto recuperado, e responde "nao sei" quando a similaridade
 	com a base e baixa. Limiar atual de abstencao: 0.58 (heuristica inicial, ver docs/planejamento/04_FASE_3_RAG_ASSISTANT.md).
-</div>
-</main>
+</div>>
+
+	&html<</main>
 </div>
 </body>
 </html>>
