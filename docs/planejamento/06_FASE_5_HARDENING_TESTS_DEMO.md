@@ -57,7 +57,7 @@ depende de decisão dele.
 
 | # | Item | Status |
 |---|---|---|
-| 1 | Instalação a partir de checkout limpo | Não iniciado |
+| 1 | Instalação a partir de checkout limpo | **Feita 13/09/2026** — ver §6. README corrigido com 6 lacunas reais encontradas |
 | 2 | Teste formal: percurso completo | **Feito 13/09/2026** — ver §5 |
 | 3 | Teste formal: falha de destino | **Refeito e corrigido 13/09/2026** — ver §5. `docs/experiments/01_falha_recuperacao_producao.md` estava desatualizado pelo roteamento por Business Rules, corrigido |
 | 4 | Teste formal: falta de dados | **Feito 13/09/2026** — ver §5 |
@@ -69,9 +69,10 @@ depende de decisão dele.
 
 ## 3. Pendente
 
-Itens 1, 8 e 9 da tabela acima (mais a regeneração do PDF do manual, ver
-§4). Ver `00_MASTER_PLAN.md` §5 para o registro cronológico de
-pendências e `07_SCORECARD_EVIDENCIAS.md` para evidência item a item.
+Itens 8 e 9 da tabela acima (mais a regeneração do PDF do manual, ver
+§4, e o script de reingestão do corpus RAG, ver §6). Ver
+`00_MASTER_PLAN.md` §5 para o registro cronológico de pendências e
+`07_SCORECARD_EVIDENCIAS.md` para evidência item a item.
 
 ## 4. Auditoria de segredos (13/09/2026) — resultado
 
@@ -225,3 +226,88 @@ corretamente, sem dano permanente. **OK.**
 **Limpeza:** `/durable/guardian/{in,archive,out,out_priority}`
 esvaziados ao final, Production deixada `Running` (estado padrão entre
 sessões).
+
+## 6. Instalação a partir de checkout limpo (13/09/2026) — resultado
+
+Container Docker novo (`iris-guardian-clean`, volume nomeado novo,
+portas `51974`/`53775` para não colidir com o `iris-guardian` real),
+seguindo **só** o que estava escrito no README, sem nenhum atalho do
+ambiente já configurado à mão. Onde o README mandava usar o Management
+Portal (GUI, não roteável por automação headless), substituí por
+chamadas COS equivalentes documentadas nesta seção — mais rápido de
+verificar e também mais fácil de reproduzir num CI, então o achado virou
+correção direta no README (agora oferece as duas formas).
+
+**Seis lacunas reais encontradas e corrigidas no README nesta sessão:**
+
+1. **Tabela "Project status" completamente desatualizada** — dizia que
+   Monitor/Investigator/RAG/Business Rules "not started", quando os
+   quatro estavam prontos e testados há dias. Corrigida.
+2. **"Interoperability enabled" não tem equivalente scriptável
+   documentado** — `Config.Namespaces.Create` sozinho não habilita
+   interoperabilidade (classes `Ens.*` não compilam: `ERROR #5373: Class
+   'Ens.Production'... does not exist`). Descoberto por tentativa e erro
+   consultando `%Dictionary.PropertyDefinition` de `Config.Namespaces`:
+   existe uma propriedade `Interop` (`Config.Namespaces.Modify(ns,
+   .props)` com `props("Interop")=1`) que resolve, sem precisar
+   recriar o namespace. Adicionado ao README como alternativa à GUI.
+3. **Diretórios `/durable/guardian/{in,archive,out,out_priority}` não
+   são criados por nada** — nem pelo `StartProduction`, nem pelos
+   adaptadores de arquivo. Sem esse passo (ausente do README), a
+   Production sobe mas todo host de arquivo fica quebrado silenciosamente
+   até alguém enviar a primeira mensagem e descobrir pelo erro.
+4. **Passo de assets estava incompleto** — copiava só o logo e o CSS,
+   faltando o logo dark-mode e o spinner de loading (`RAG Assistant`/
+   `Investigator` referenciam `/csp/guardian/iris-guardian-spinner.png`).
+   Pior: **`iris-guardian-spinner.png` nunca tinha sido commitado no
+   repositório** — existia só dentro do container em produção, copiado
+   manualmente numa sessão anterior. Um `git clone` limpo perderia esse
+   arquivo para sempre, sem nenhum jeito de recriá-lo a partir do repo.
+   Resgatado do container real e adicionado a `assets/`.
+5. **Nenhuma menção a SSL config ou credenciais de IA** — sem
+   `Security.SSLConfigs` (`PublicHTTPS`) e sem `Ens.Config.Credentials`
+   para `Gemini`/`Groq`, o Investigator/RAG carregam normalmente mas toda
+   pergunta de IA falha. Comportamento gracioso confirmado ao vivo (sem
+   credencial: `ERROR <Ens>ErrNoCredentialsSystemName`, HTTP 200, mensagem
+   real de indisponibilidade, sem inventar resposta) — mas o README nunca
+   dizia que esse passo existia. Adicionado, incluindo onde conseguir as
+   chaves gratuitas de cada provedor.
+6. **Nenhuma das 4 classes `*.Schema.Setup()` (RAG, Monitor,
+   Investigator, PublicHealth) está documentada** — elas criam as
+   próprias tabelas SQL via `CREATE TABLE IF NOT EXISTS` na primeira
+   execução, não ao compilar a classe. Sem chamar isso manualmente uma
+   vez, toda página falha com `Statement not prepared` - fácil de
+   confundir com erro de compilação. Adicionado ao README como passo
+   próprio, antes de criar os diretórios/iniciar a Production.
+
+**Verificado funcionando de ponta a ponta depois de fechar as 6
+lacunas:** namespace/DB criados, 30 classes compiladas sem erro, 4
+schemas criados, diretórios criados, Production iniciada, assets
+servidos, SSL configurado, credencial Gemini real transferida do
+container de produção **sem nunca aparecer na saída de texto** (exportada
+para um arquivo no scratchpad, copiada via `docker cp`, importada por
+COS, arquivos temporários apagados dos dois lados), ingestão real de um
+documento (`Guardian.RAG.Ingestion.IngestFile`), e as páginas RAG
+Assistant e AI Incident Investigator respondendo com citação real a
+partir do corpus recém-ingerido — tudo isso num container que não existia
+15 minutos antes.
+
+**Achado sem correção ainda (não é lacuna do README, é lacuna de
+conteúdo):** o corpus real em uso (12 documentos: 7 arquivos locais de
+`docs/planejamento/` + 5 páginas públicas da InterSystems Developer
+Community/docs, buscadas e ingeridas manualmente ao longo de várias
+sessões) não tem um script ou lista reproduzível em lugar nenhum do
+repositório — só existe como estado acumulado no volume Docker de
+produção. Lista completa capturada nesta sessão via SQL
+(`SELECT Source,Title,Version FROM Guardian_RAG.Document`), não copiada
+aqui para não desatualizar — reconsultar a tabela ao vivo se for preciso
+reconstruir. Recomendação: um script `docs/experiments/` ou rotina COS
+com a lista de chamadas `IngestFile` (para os 7 locais) fica fácil;
+os 5 externos exigiriam re-buscar e reformatar cada página à mão -
+decisão de prioridade do proprietário, não bloqueante para a fase.
+
+**Limpeza:** container `iris-guardian-clean` e volume
+`iris-guardian-clean-data` removidos ao final — nada do ambiente de
+verificação persiste. O container `iris-guardian` real não foi tocado,
+só consultado (schema da credencial Gemini e config do `Config.MapGlobals`
+para comparação).

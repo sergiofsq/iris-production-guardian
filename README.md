@@ -44,16 +44,20 @@ Full rationale in `docs/planejamento/IRIS-Production-Guardian-CONVERSATION-CONTE
 | Vector Search (native IRIS) | ✅ Confirmed available, no extra license |
 | Foreign Table | ✅ Confirmed available, no extra license |
 | IntegratedML (AutoML provider) | ❌ Confirmed **unavailable** on this image (missing proprietary `iris_automl` Python package) — out of MVP scope, see `docs/planejamento/07_SCORECARD_EVIDENCIAS.md` |
-| Production (Service → Process → Operation) | ✅ Implemented and tested end-to-end with a real message, including a controlled failure + recovery scenario |
-| Production Monitor UI | 🚧 Not started |
-| AI Incident Investigator | 🚧 Not started |
-| RAG Assistant | 🚧 Not started |
-| Business Rules engine | 🚧 Not started (routing is currently plain code) |
+| Production (Service → Process → Operation) | ✅ Implemented and tested end-to-end with a real message, including a controlled failure + recovery scenario, and severity-based routing (Business Rules, below) |
+| Production Monitor UI | ✅ Implemented and tested — live host health, queues, error counts, timeline |
+| AI Incident Investigator | ✅ Implemented and tested — real evidence (metrics/events/docs) + AI analysis, hypothesis separated from observation |
+| RAG Assistant | ✅ Implemented and tested — hybrid retrieval (vector + lexical), generation with citation, calibrated abstention. Two providers wired in: Gemini (default) and Groq (second menu entry, bonus "multimodelo") |
+| Business Rules engine | ✅ Implemented and tested — `Guardian.Rule.IncidentRoutingRule` (`Ens.Rule.Definition`) routes by severity, editable in the portal without recompiling |
 
 Detailed, dated evidence for every item above lives in
 `docs/planejamento/07_SCORECARD_EVIDENCIAS.md` and the phase documents
 (`docs/planejamento/00_MASTER_PLAN.md` onward). Nothing in this README is
-claimed without a corresponding test that was actually run.
+claimed without a corresponding test that was actually run. What's still
+open: Fase 5 hardening items (a full clean-install pass is below; formal
+video/community article still pending) and two `VERIFY_REQUIRED` items
+that depend on the contest organizers (submission deadline/timezone,
+bonus cap interpretation).
 
 ## Architecture (proposed, validated incrementally)
 
@@ -107,31 +111,91 @@ docker run -d --name iris-guardian \
 > Do **not** use the `intersystems/iris-community-arm64` image — it is
 > unmaintained and its embedded Community license has expired.
 
-### 2. Create the namespace and an admin user
+### 2. Create the namespace, database and an admin user
 
 Via the Management Portal (`http://localhost:53773/csp/sys/UtilHome.csp`,
-log in as `_SYSTEM`):
+log in as `_SYSTEM` — first login forces a password change):
 
-1. Create a dedicated administrative user (System Administration → Users).
-2. System Administration → Configuration → Namespaces → New Namespace:
+1. System Administration → Configuration → Namespaces → New Namespace:
    name `GUARDIAN`, new database `GUARDIANDB` for both Globals and
-   Routines, **interoperability enabled**.
+   Routines, **interoperability enabled** (checkbox in the wizard).
+2. Create a dedicated administrative user (System Administration →
+   Users) with role `%All` — this repo's docs/scripts assume `guardian`/
+   `guardian`; pick your own if you prefer, just adjust anything that
+   references it (also `.vscode/settings.json`'s `username`).
+
+Equivalent, scriptable version of both (run from `iris session IRIS -U
+%SYS`, no portal needed) — useful for a throwaway/CI instance:
+
+```objectscript
+Set dbprops("Globals")="GUARDIANDB"
+Set dbprops("Routines")="GUARDIANDB"
+Do ##class(Config.Databases).Create("GUARDIANDB",.dbprops)
+
+Set nsprops("Globals")="GUARDIANDB"
+Set nsprops("Routines")="GUARDIANDB"
+Do ##class(Config.Namespaces).Create("GUARDIAN",.nsprops)
+
+;; "interoperability enabled" is this one property - not obvious from
+;; the portal wizard's checkbox alone, took a live trial to confirm
+Set iprops("Interop")=1
+Do ##class(Config.Namespaces).Modify("GUARDIAN",.iprops)
+
+Do ##class(Security.Users).Create("guardian","%All","guardian","Guardian Admin","GUARDIAN","",,0,1)
+```
+
+A CSP web application at `/csp/guardian/` (physical path
+`/durable/csp/guardian/`) is created automatically as part of the
+namespace — no separate step needed for that part.
 
 (Step-by-step with screenshots-worthy detail: `docs/planejamento/01_FASE_0_SETUP_ARQUITETURA.md`.)
 
-### 3. Load and start the Production
+### 3. Load the classes and create the SQL tables
 
 Compile the classes under `src/Guardian/` into the `GUARDIAN` namespace
 (e.g. via VS Code + the InterSystems ObjectScript extension pointed at
-`localhost:53773`, namespace `GUARDIAN`), then:
+`localhost:53773`, namespace `GUARDIAN`, or `Do
+$system.OBJ.ImportDir("<path>","*.cls","ck",.err,1)` from the terminal).
+
+Compiling the classes does **not** create their SQL tables — four
+`Schema` classes build their own tables via `CREATE TABLE` on first use
+and must be called once explicitly (idempotent, safe to re-run):
+
+```objectscript
+Do ##class(Guardian.RAG.Schema).Setup()
+Do ##class(Guardian.Monitor.Schema).Setup()
+Do ##class(Guardian.Investigator.Schema).Setup()
+Do ##class(Guardian.PublicHealth.Schema).Setup()
+```
+
+Skipping this makes every page fail with a `Statement not prepared` SQL
+error the first time it touches its table — easy to mistake for a
+compile problem, it's really just a missing `.Setup()` call.
+
+### 4. Create the runtime directories and start the Production
+
+The file-based Service/Operations need these directories to exist with
+`irisowner` write access before the Production starts (not created
+automatically):
+
+```sh
+docker exec iris-guardian mkdir -p /durable/guardian/in /durable/guardian/archive /durable/guardian/out /durable/guardian/out_priority
+```
+
+Then:
 
 ```objectscript
 Do ##class(Ens.Director).StartProduction("Guardian.Production.GuardianProduction")
 ```
 
-Or start it from Interoperability → Configure → Production in the portal.
+Or start it from Interoperability → Configure → Production in the
+portal. If the Production was ever stopped uncleanly (container
+restart, crash), `StartProduction` alone throws
+`<Ens>ErrProductionNotShutdownCleanly` — call
+`Do ##class(Ens.Director).RecoverProduction()` (no arguments) once
+first, then retry `StartProduction`.
 
-### 4. Serve the static assets (logo, CSS) used by the Monitor/RAG pages
+### 5. Serve the static assets (logo, CSS) used by the Monitor/RAG pages
 
 The `GUARDIAN` CSP web application serves static files straight from its
 physical directory inside the container. Copy them in once per fresh
@@ -140,11 +204,79 @@ not a brand-new `docker volume create`):
 
 ```sh
 docker cp assets/production-guardian-logo.png iris-guardian:/durable/csp/guardian/production-guardian-logo.png
+docker cp assets/production-guardian-logo-dark.png iris-guardian:/durable/csp/guardian/production-guardian-logo-dark.png
+docker cp assets/iris-guardian-spinner.png iris-guardian:/durable/csp/guardian/iris-guardian-spinner.png
 docker exec iris-guardian mkdir -p /durable/csp/guardian/assets/css
 docker cp assets/css/iris-guardian-theme.css iris-guardian:/durable/csp/guardian/assets/css/iris-guardian-theme.css
 ```
 
-### 5. Reproduce the failure/recovery demo
+> The private webserver caches 404s per exact URL — if you `curl` a page
+> before copying these files and it 404s, a later identical request can
+> keep 404ing even after the files exist. Add a cache-busting query
+> string (`?cb=1`) or just trust the file is there once `docker exec ...
+> ls` confirms it.
+
+### 6. Configure AI provider access (needed for Investigator/RAG)
+
+Outbound HTTPS needs an SSL/TLS config (once per container — the
+Community image ships a system CA bundle, no certs to fetch):
+
+```objectscript
+Set obj = ##class(Security.SSLConfigs).%New()
+Set obj.Name = "PublicHTTPS"
+Set obj.Type = 0
+Set obj.CAFile = "/etc/ssl/certs/ca-certificates.crt"
+Set obj.VerifyPeer = 1
+Set obj.Enabled = 1
+Do obj.%Save()
+```
+
+Then a credential per provider you want working, read at runtime from
+`Ens.Config.Credentials` and never written to source (get a free Gemini
+key at [aistudio.google.com](https://aistudio.google.com), a free Groq
+key at [console.groq.com](https://console.groq.com) — neither needs a
+credit card):
+
+```objectscript
+Set obj = ##class(Ens.Config.Credentials).%New()
+Set obj.SystemName = "Gemini"
+Set obj.Username = "gemini-api"
+Set obj.Password = "<YOUR_REAL_GEMINI_KEY>"
+Do obj.%Save()
+
+Set obj2 = ##class(Ens.Config.Credentials).%New()
+Set obj2.SystemName = "Groq"
+Set obj2.Username = "groq-api"
+Set obj2.Password = "<YOUR_REAL_GROQ_KEY>"
+Do obj2.%Save()
+```
+
+Without a credential, the Investigator/RAG pages don't crash — they
+render normally and show a real "model unavailable" message where the
+AI answer would go (verified live). `RAG Assistant (Gemini)` uses the
+`Gemini` credential for both retrieval (embeddings) and generation; `RAG
+Assistant (Groq)` reuses the same Gemini-embedded corpus for retrieval
+and only swaps the `Groq` credential in for generation — it needs
+**both** credentials set, not just `Groq`.
+
+### 7. Ingest the RAG corpus
+
+The RAG Assistant answers only from documents you've ingested — nothing
+is indexed automatically. Per document:
+
+```objectscript
+Do ##class(Guardian.RAG.Ingestion).IngestFile("<path-inside-container>","<source label>","<title>","<version/date>")
+```
+
+The corpus actually in use (7 local `docs/planejamento/*.md` files plus
+5 external InterSystems Developer Community/docs pages, fetched and
+ingested by hand) isn't yet captured as a reproducible script or file
+list anywhere in this repo — a real gap, not just a missing README step.
+Until that's fixed, ingest at least the local phase docs to get a
+working (if smaller) corpus; see `docs/planejamento/04_FASE_3_RAG_ASSISTANT.md`
+for the retrieval/abstention design this feeds into.
+
+### 8. Reproduce the failure/recovery demo
 
 Follow `docs/experiments/01_falha_recuperacao_producao.md` step by step —
 it drives the Production with real file drops, breaks the output
