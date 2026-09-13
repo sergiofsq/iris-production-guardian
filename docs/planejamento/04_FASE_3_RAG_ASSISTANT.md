@@ -96,6 +96,59 @@ não de bytes UTF-8) — confirma que a string está armazenada corretamente
 internamente; o problema é só do charset do terminal usado para depurar,
 não da aplicação. Não precisou de correção no código.
 
+## 3.1.1 Multimodelo (bônus) — segundo provedor escolhido: Groq (13/09/2026)
+
+Pendência aberta desde a Fase 0 (item 3 do backlog geral). Decisão do
+proprietário: **Groq** (free tier, sem cartão de crédito, API compatível
+com o formato OpenAI Chat Completions).
+
+- Descartados nesta rodada: Cohere ("cohala" — trial key com a mesma
+  restrição de uso não-comercial já descartada na decisão da seção 1),
+  OpenRouter (limite de free tier mais apertado) e Mistral AI (rate limit
+  de experimentação mais baixo) — todas opções válidas, Groq escolhido
+  por simplicidade de integração (schema idêntico ao já usado para
+  testar a API da OpenAI na seção 1) e limites mais folgados.
+- Escopo do bônus: só a **geração** troca de provedor.
+  `Guardian.UI.RAGAltPage` continua usando `Guardian.RAG.GeminiClient` (via
+  `Guardian.RAG.Query.Retrieve`) para os embeddings — o corpus já está
+  indexado em vetores Gemini de 768 dimensões (seção 3), reingestar tudo
+  num espaço vetorial novo não teria valor para demonstrar "acesso real a
+  mais de um provedor de IA". `Guardian.RAG.Query.Ask` ganhou um
+  parâmetro `pGenerationClient` (default `Guardian.RAG.GeminiClient`) —
+  `RAGAltPage` passa `"Guardian.RAG.GroqClient"`.
+- `Guardian.RAG.GroqClient.Generate(prompt)` — mesma assinatura de
+  `GeminiClient.Generate`, via `%Net.HttpRequest`, reaproveitando a
+  configuração SSL `PublicHTTPS` já criada (seção 3).
+- **Nome do modelo corrigido por uma chamada real, mesmo padrão da seção
+  2**: `llama-3.3-70b-versatile` (conhecimento desatualizado do agente)
+  devolveu `404 The model llama-3.3-70b-versatile does not exist or you
+  do not have access to it`. Corrigido consultando `GET
+  /openai/v1/models` com a chave real — lineup atual do Groq não tem mais
+  modelos Llama de uso geral; usado **`openai/gpt-oss-120b`** (modelo
+  open-weight da OpenAI hospedado no Groq), que respondeu com sucesso.
+- Setup de credencial (mesmo padrão da seção 3, `SystemName` diferente):
+
+```objectscript
+;; namespace GUARDIAN — credencial da API Groq (SUBSTITUIR pelo valor
+;; real, nunca commitar a chave de verdade; obter grátis em
+;; console.groq.com, sem cartão de credito)
+Set obj = ##class(Ens.Config.Credentials).%New()
+Set obj.SystemName = "Groq"
+Set obj.Username = "groq-api"
+Set obj.Password = "<CHAVE_REAL_AQUI>"
+Do obj.%Save()
+```
+
+**Estado em 13/09/2026: fechado.** Credencial `Groq` criada em
+`Ens.Config.Credentials`, classes compiladas sem erro no IRIS, e testado
+ao vivo **pela própria página** (não só o client isolado): login →
+Investigator em `Guardian.Operation.FileOutputOperation` → RAG Assistant
+(novo modelo) → pergunta sugerida "Como resolver..." → resposta real do
+Groq (`openai/gpt-oss-120b`), com passos acionáveis citando tanto a
+investigação atual quanto o caminho de menu do Management Portal — mesmo
+padrão de qualidade já validado para o Gemini em
+`06_FASE_5_HARDENING_TESTS_DEMO.md`.
+
 ## 3.2 Esquema de dados, chunking, ingestão e consulta (09/09/2026)
 
 - **Esquema**: `Guardian_RAG.Document` (Source, Title, Version,

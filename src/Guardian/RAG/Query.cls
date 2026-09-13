@@ -171,7 +171,17 @@ ClassMethod Retrieve(pQuestion As %String) As %DynamicObject
 /// que foram indexados (pt ou en, corpus misto) - o prompt pede
 /// explicitamente para a RESPOSTA (nao a citacao literal) sair no idioma
 /// pedido mesmo assim.
-ClassMethod Ask(pQuestion As %String, pInvestigationContext As %String = "", pLang As %String = "pt") As %DynamicObject
+/// pGenerationClient (13/09/2026, bonus multimodelo): nome da classe usada
+/// para a etapa de GERACAO (default Guardian.RAG.GeminiClient). A
+/// RECUPERACAO acima (Retrieve, chamada logo abaixo) sempre usa
+/// Guardian.RAG.GeminiClient.Embed - o corpus ja foi indexado com vetores
+/// Gemini de 768 dimensoes, entao trocar so a embedding aqui exigiria
+/// reingestar tudo num espaco vetorial novo sem necessidade. Trocar o
+/// provedor de fato so importa na geracao (Guardian.UI.RAGAltPage passa
+/// "Guardian.RAG.GroqClient" aqui) - a classe informada so precisa
+/// implementar Generate(pPrompt) com a mesma assinatura de
+/// Guardian.RAG.GeminiClient.Generate.
+ClassMethod Ask(pQuestion As %String, pInvestigationContext As %String = "", pLang As %String = "pt", pGenerationClient As %String = "Guardian.RAG.GeminiClient") As %DynamicObject
 {
 	Set tResult = {}
 	Set tResult.question = pQuestion
@@ -223,7 +233,7 @@ ClassMethod Ask(pQuestion As %String, pInvestigationContext As %String = "", pLa
 	Set tPrompt = tPrompt _ $Char(10) _ $Select(tEn:"QUESTION: ", 1:"PERGUNTA: ") _ pQuestion
 
 	Set tResult.abstained = 0
-	Set tResult.answer = ##class(Guardian.RAG.GeminiClient).Generate(tPrompt)
+	Set tResult.answer = $ClassMethod(pGenerationClient, "Generate", tPrompt)
 
 	Quit tResult
 }

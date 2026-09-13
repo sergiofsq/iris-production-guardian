@@ -21,7 +21,7 @@ exceção foi aplicada até aqui.
 
 | Fase | Arquivo | Status |
 |---|---|---|
-| Fase 0 — Setup e arquitetura | `01_FASE_0_SETUP_ARQUITETURA.md` | Infraestrutura e VRs críticos fechados. Bônus híbrida e API pública fechados (ver Fases 3 e 5); só multimodelo (esqueleto iniciado) segue pendente — não bloqueia as demais fases |
+| Fase 0 — Setup e arquitetura | `01_FASE_0_SETUP_ARQUITETURA.md` | Infraestrutura e VRs críticos fechados. Bônus híbrida, API pública e multimodelo fechados (ver Fases 3 e 5) |
 | Fase 1 — Production COS / interoperabilidade | `02_FASE_1_PYPROD_INTEROPERABILITY.md` | Completa, incluindo o bônus opcional — Service/Process/Operation com adaptador de arquivo, mensagem real ponta a ponta, cenário de falha/recuperação testado e reproduzível (`docs/experiments/01_falha_recuperacao_producao.md`), roteamento por Business Rules real (`Ens.Rule.Definition`) fechado em 10/09/2026, ver §6 do arquivo |
 | Fase 2 — Production Monitor / telemetria | `03_FASE_2_PRODUCTION_MONITOR_WSGI_TELEMETRY.md` | Concluída e validada visualmente. Reforço de 10/09/2026: série temporal persistida (`Guardian_Monitor.HealthSample`) e detecção de host travado, ver §6.1 |
 | Fase 3 — RAG Assistant | `04_FASE_3_RAG_ASSISTANT.md` | Completa e testada: ingestão, chunking, armazenamento vetorial, recuperação híbrida (vetorial + lexical via iFind, bônus +3, ver §4), geração com citação, abstenção calibrada, página de consulta. Validação visual concluída em 10/09/2026 (fundo/logo ajustados) |
@@ -44,7 +44,7 @@ desatualizado.
 | 20/09 | Demo completa, gravação, README, artigo, auditoria da matriz | README já existe (criado 09/09); gravação/artigo pendentes |
 | 21/09 | Conferência final e submissão | Não iniciada |
 
-**Leitura honesta:** o ritmo está bem adiantado em relação ao cronograma original — três fases (0, 1, 2) mais a Fase 3 (RAG) já têm versões funcionais testadas no dia 1 da janela de trabalho real. Isso é adiantamento de sequência, não validação de que não falta trabalho: só multimodelo segue como bônus opcional em aberto (Business Rules, busca híbrida e API pública já fechados), hardening/testes formais, vídeo e artigo continuam por fazer.
+**Leitura honesta:** o ritmo está bem adiantado em relação ao cronograma original — três fases (0, 1, 2) mais a Fase 3 (RAG) já têm versões funcionais testadas no dia 1 da janela de trabalho real. Isso é adiantamento de sequência, não validação de que não falta trabalho: todos os bônus opcionais já fechados (Business Rules, busca híbrida, API pública, multimodelo), mas hardening/testes formais, vídeo e artigo continuam por fazer.
 
 `VERIFY_REQUIRED`: horário/fuso oficial de corte da submissão — não
 presumir 23h59 (herdado do contexto, ainda aberto).
@@ -217,7 +217,10 @@ Registro único em `07_SCORECARD_EVIDENCIAS.md`. Resumo do que segue aberto:
 - ~~Business Rules (roteamento real)~~ — **fechada 10/09/2026**:
   `Guardian.Rule.IncidentRoutingRule` (`Ens.Rule.Definition`), ver
   `02_FASE_1_PYPROD_INTEROPERABILITY.md` §6.
-- Multimodelo (formas reais de acesso por tipo).
+- ~~Multimodelo (formas reais de acesso por tipo)~~ — **fechada
+  13/09/2026**: segundo provedor Groq (`Guardian.RAG.GroqClient`,
+  `openai/gpt-oss-120b`) integrado em `Guardian.UI.RAGAltPage`, testado
+  ao vivo end-to-end, ver `04_FASE_3_RAG_ASSISTANT.md` §3.1.1.
 - ~~Pesquisa híbrida (lexical + vetorial)~~ — **fechada 10/09/2026**:
   iFind + RRF em `Guardian.RAG.Query`, ver `04_FASE_3_RAG_ASSISTANT.md` §6.
 - ~~Acesso a API pública adequada~~ — **fechada 11/09/2026**: bônus
@@ -287,13 +290,13 @@ para sidebar persistente (`3a850cc`, 11/09/2026) — uma tentativa
 seguinte de abrir Investigator/RAG como modal flutuante foi revertida
 no mesmo dia por problemas de UX (ver histórico de commits em torno de
 `c737244`; não é uma decisão de fase, não tem doc dedicado).
-Pendências que restam: IntegratedML (bloqueado, VR-003), multimodelo
-(bônus — esqueleto de menu/página duplicada iniciado 11/09/2026, ainda
-sem segundo provedor de IA de verdade integrado), decisão de qual será
-esse segundo provedor (Gemini free tier segue instável — vários
-timeouts/429/503 reais observados ao longo dos testes), horário/fuso da
+Pendências que restam: IntegratedML (bloqueado, VR-003), horário/fuso da
 submissão e interpretação do teto de bônus (ambos `VERIFY_REQUIRED`
 ainda abertos, dependem da organização do concurso), e a Fase 5
 (hardening, testes formais, gravação do vídeo, artigo) — escopo
 definido em `06_FASE_5_HARDENING_TESTS_DEMO.md`, execução ainda não
-começou.
+começou. Multimodelo (bônus) **fechado 13/09/2026**: segundo provedor
+Groq integrado em `Guardian.UI.RAGAltPage` e testado ao vivo end-to-end
+(ver `04_FASE_3_RAG_ASSISTANT.md` §3.1.1) — Gemini free tier seguiu
+instável em testes anteriores (vários timeouts/429/503 reais), motivo a
+mais para ter um segundo provedor real, não só o esqueleto de menu.

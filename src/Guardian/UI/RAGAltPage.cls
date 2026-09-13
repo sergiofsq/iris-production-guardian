@@ -1,10 +1,12 @@
-/// Segunda opcao de RAG Assistant (12/09/2026) - por enquanto uma copia
-/// funcional identica de Guardian.UI.RAGPage (mesmo Guardian.RAG.Query,
-/// mesmo backend Gemini), criada so para reservar o segundo item de menu
-/// enquanto o provedor de LLM alternativo ainda nao foi escolhido. Quando
-/// a decisao for tomada, so a chamada de geracao/embedding aqui precisa
-/// trocar - retrieval, formulario e contexto de investigacao continuam
-/// iguais aos de Guardian.UI.RAGPage.
+/// Segunda opcao de RAG Assistant - copia funcional de Guardian.UI.RAGPage
+/// (mesmo Guardian.RAG.Query, mesma recuperacao/embeddings via
+/// Guardian.RAG.GeminiClient), mas a GERACAO usa Guardian.RAG.GroqClient
+/// (13/09/2026 - provedor escolhido: Groq, free tier sem cartao de
+/// credito, API compativel com o formato OpenAI). Requer uma credencial
+/// "Groq" em Ens.Config.Credentials (mesmo padrao de "Gemini", ver
+/// docs/planejamento/04_FASE_3_RAG_ASSISTANT.md secao 3) - sem ela, o
+/// bloco Catch abaixo mostra a indisponibilidade real em vez de inventar
+/// uma resposta.
 Class Guardian.UI.RAGAltPage Extends %CSP.Page
 {
 
@@ -60,7 +62,7 @@ ClassMethod OnPage() As %Status
 <html lang="#(tHtmlLang)#"#(tThemeAttr)#>
 <head>
 <meta charset="utf-8">
-<title>IRIS Production Guardian - RAG Assistant (novo modelo)</title>
+<title>IRIS Production Guardian - #(##class(Guardian.UI.I18n).T("nav.ragalt"))#</title>
 <link rel="stylesheet" href="/csp/guardian/assets/css/iris-guardian-theme.css?v=2">
 <style>
 	main { max-width: 800px; margin: 0 auto; padding: 2rem 1.5rem; }
@@ -134,7 +136,7 @@ ClassMethod OnPage() As %Status
 			// pessoa ler na tela) - e nela que estao os PROXIMOS PASSOS
 			// SUGERIDOS que respondem "como resolver".
 			Set tInvContextForAsk = $Select(tHasInvestigation:tInvAnalysis, 1:"")
-			Set tResp = ##class(Guardian.RAG.Query).Ask(tQuestion, tInvContextForAsk, ##class(Guardian.UI.I18n).Lang())
+			Set tResp = ##class(Guardian.RAG.Query).Ask(tQuestion, tInvContextForAsk, ##class(Guardian.UI.I18n).Lang(), "Guardian.RAG.GroqClient")
 		} Catch ex {
 			// Indisponibilidade do modelo de IA nao deve derrubar a pagina
 			// nem esconder o problema - mostra o erro real, sem inventar
