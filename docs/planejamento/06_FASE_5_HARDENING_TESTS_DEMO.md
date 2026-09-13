@@ -62,12 +62,96 @@ depende de decisão dele.
 | 3 | Teste formal: falha de destino | Coberto por `docs/experiments/01_falha_recuperacao_producao.md`; reconfirmar após mudanças de UI |
 | 4 | Teste formal: falta de dados | Não iniciado |
 | 5 | Teste formal: indisponibilidade de modelo/API | Observado organicamente (503/429 reais), não formalizado como caso repetível |
-| 6 | Auditoria de segredos | Não iniciado |
+| 6 | Auditoria de segredos | **Quase feita, 13/09/2026** — ver §4 abaixo. Nenhum segredo real encontrado em código/histórico do git. Achado de privacidade (não segredo) nos screenshots do manual: PNGs soltos e `.docx` (PT/EN) já corrigidos; falta regenerar o `.pdf` a partir do `.docx` corrigido — bloqueado numa permissão do macOS que só o proprietário aprova fisicamente |
 | 7 | Fechamento de pendências no scorecard | Feito 11/09/2026 para o bônus API pública (PublicHealth), que estava implementado e testado mas não refletido em `00_MASTER_PLAN.md`/`07_SCORECARD_EVIDENCIAS.md`. Demais itens do scorecard seguem corretos |
 | 8 | Gravação do vídeo | Não iniciado |
 | 9 | Artigo da comunidade | Não iniciado |
 
 ## 3. Pendente
 
-Tudo acima. Ver `00_MASTER_PLAN.md` §5 para o registro cronológico de
-pendências e `07_SCORECARD_EVIDENCIAS.md` para evidência item a item.
+Itens 1-5, 8 e 9 da tabela acima. Ver `00_MASTER_PLAN.md` §5 para o
+registro cronológico de pendências e `07_SCORECARD_EVIDENCIAS.md` para
+evidência item a item.
+
+## 4. Auditoria de segredos (13/09/2026) — resultado
+
+Escopo: nenhuma credencial (senha `guardian`/`guardian`, chaves Gemini e
+Groq) em código versionado, histórico do git ou documentação publicada.
+
+**Verificado, nada encontrado:**
+- `git grep` no working tree (código-fonte) por padrões de chave
+  (`gsk_...`, `AIza...`, `password = "..."`, `api_key = "..."`) — zero
+  ocorrências.
+- `git log --all -S"<padrão>"` (pickaxe, varre **todo o histórico**, não
+  só o HEAD atual — importante porque o repo é público e um segredo já
+  removido continuaria exposto no histórico) para `gsk_`, `AIza`,
+  `sk-`, `IRIS_PASSWORD=`, `Password = "guardian"` — zero ocorrências
+  reais (um falso positivo de `sk-` caiu dentro de bytes binários de PNG,
+  não é texto).
+- `pessoal/` (contém a credencial em texto puro `Anotações para
+  Usuário.txt`) confirmado **nunca rastreado** pelo git, desde o
+  primeiro commit — sempre no `.gitignore`, junto com
+  `Imagens/Error/`.
+- `.vscode/settings.json` (rastreado) só guarda host/porta/namespace/
+  username (`guardian`) da extensão ObjectScript — sem senha.
+- `docs/planejamento/04_FASE_3_RAG_ASSISTANT.md` usa
+  `<CHAVE_REAL_AQUI>` como placeholder no snippet de setup — nunca a
+  chave de verdade.
+- A chave Groq real (recebida ao vivo nesta sessão, 13/09/2026) foi
+  usada só em comandos efêmeros (`iris session` via heredoc) e salva
+  direto em `Ens.Config.Credentials` dentro do IRIS — nunca tocou um
+  arquivo do repositório; confirmado por pickaxe (`gsk_` acima).
+
+**Achado — não é segredo, é privacidade — corrigido 13/09/2026:** os 7
+screenshots em `entregaveis/manual_assets/*.png` (arquivos-fonte soltos
+no repositório, navegáveis diretamente no GitHub) mostravam a barra de
+favoritos/abas do navegador do proprietário por inteiro: início do
+e-mail pessoal ("Entrada - sergiofs...") e nomes de pastas pessoais
+(`DESPESAS`, `Corretagem`, `Empresa`, `Estudo`). Nenhuma senha ou chave
+apareceu em nenhuma delas. Recortadas (removidos os primeiros 104px de
+altura de cada uma, região da barra de abas/URL/favoritos, verificado
+pixel a pixel) e sobrescritas no repositório.
+
+**Verificação extra (13/09/2026): o conteúdo *visível* do `.docx`/`.pdf`
+já montados nunca mostrou a barra de favoritos.** Antes de recortar o
+`.docx`, abri o pacote (é um zip) e conferi `word/document.xml` — cada
+uma das 7 imagens já tinha um retângulo de corte do Word (`a:srcRect`)
+aplicado manualmente pelo proprietário ao montar o manual, com corte
+superior mínimo de 14,5% da altura (111px de 768) — sempre abaixo da
+linha da barra de abas/favoritos (104px). Renderizado o corte real de
+duas imagens e a página 3 do PDF (dpi 150) para confirmar visualmente:
+nenhuma mostra o navegador.
+
+**Porém o *asset bruto embutido* (não o que aparece na tela) ainda era o
+screenshot completo sem corte** — em ambos os formatos: `python3 -c
+"import zipfile"` no `.docx` e `PyMuPDF` no `.pdf` confirmam que a
+imagem de 1314×768 fica embutida por inteiro, e só a instrução de
+recorte do Word decide o que é exibido. Ou seja, alguém que extraia as
+imagens de dentro do arquivo (como fiz para auditar) veria a barra de
+favoritos, mesmo sem ela aparecer ao ler o documento normalmente —
+mesma categoria de exposição dos PNGs soltos, só que dentro do binário.
+
+**Corrigido nos `.docx` (13/09/2026):** as 7 imagens embutidas foram
+substituídas pelas versões já cortadas (sem os 104px do topo) nos dois
+manuais (PT e EN), e o retângulo de corte do Word (`a:srcRect`) foi
+recalculado matematicamente para cada uma (mantendo `l`/`r`, só `t`/`b`
+mudam porque a altura da imagem-fonte mudou de 768 para 664px) — não
+reaberto no Word, editado direto no XML do pacote. Validado renderizando
+o corte resultante com os novos valores e comparando pixel a pixel com o
+corte antigo: idêntico, sem regressão visual, em ambos os manuais.
+
+**Pendente: regenerar `Manual_IRIS_Production_Guardian.pdf` a partir do
+`.docx` corrigido.** O PDF não tem um "retângulo de corte" editável como
+o `.docx` (a instrução de corte no PDF é outro mecanismo, embutida no
+content stream da página) — a forma correta e de baixo risco de corrigir
+é reexportar do `.docx` já corrigido pelo próprio Word, não editar o PDF
+byte a byte. Tentativa de automação via AppleScript (13/09/2026) travou
+esperando uma permissão do macOS (diálogo de Automação/Controle do
+sistema para o Word/System Events) que só o proprietário pode aprovar
+fisicamente na tela — ele estava fora do computador nesse momento.
+**Próxima vez que estiver no computador:** abrir
+`entregaveis/Manual_IRIS_Production_Guardian.docx` no Word → Arquivo →
+Salvar Como → PDF, sobrescrevendo `entregaveis/Manual_IRIS_Production_Guardian.pdf`
+(ou aprovar o diálogo de permissão do macOS se pedir para repetir a
+automação). Não há PDF da versão EN para regenerar (só existe o `.docx`
+EN hoje).
