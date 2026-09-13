@@ -11,7 +11,7 @@ Programming Contest**.
 
 ## What this is
 
-Three planned modules, built on InterSystems IRIS only:
+Three core modules, built on InterSystems IRIS only:
 
 - **Production Monitor** — observe a Production's components (Services,
   Processes, Operations), queues, errors and timelines.
@@ -19,7 +19,22 @@ Three planned modules, built on InterSystems IRIS only:
   window, gather metrics/events/documentation and produce a
   hypothesis-with-evidence summary (read-only; no automated remediation).
 - **RAG Assistant** — ingest authorized documentation/runbooks and answer
-  questions with traceable citations, abstaining when unsupported.
+  questions with traceable citations, abstaining when unsupported. Two
+  independent generation providers are wired in (menu: "RAG Assistant
+  (Gemini)" and "RAG Assistant (Groq)") — retrieval/embeddings stay on
+  Gemini, only the answer-generation model swaps.
+
+Plus bonus scope, also implemented and tested (not just started):
+
+- **Business Rules routing** — `Guardian.Rule.IncidentRoutingRule`
+  (`Ens.Rule.Definition`) decides the incident's destination Operation by
+  severity, editable visually in the portal without recompiling.
+- **Hybrid search** — RAG retrieval fuses vector similarity with iFind
+  lexical search (Reciprocal Rank Fusion) instead of vector-only.
+- **PublicHealth bonus Production** — a second, independent Production
+  (`Guardian.Production.PublicHealthProduction`) polling a real public
+  API (`disease.sh`), demonstrating the cache/unavailable-fallback
+  pattern without ever inventing data.
 
 ## Technology constraints (non-negotiable for this project)
 
@@ -78,13 +93,28 @@ Controlled demo destination
 ## Repository layout
 
 ```
-src/Guardian/             COS source (Production, hosts, messages)
-assets/                   Visual identity (logo, CSS tokens)
+src/Guardian/             COS source, one subpackage per concern:
+  Production/               the 2 Productions (main + PublicHealth bonus)
+  Service/ Process/          Business Service / Process (COS, not BPL)
+  Operation/ Adapter/        Business Operations + a custom InboundAdapter
+  Rule/                      Business Rules (severity routing, bonus)
+  Messages/                  Ens.Request/Response message classes
+  Monitor/ Investigator/     Status collection, evidence + AI analysis
+  RAG/                       Ingestion, hybrid retrieval, generation
+                              (Guardian.RAG.GeminiClient/GroqClient)
+  UI/                        %CSP.Page classes (Monitor/Investigator/RAG),
+                              i18n, shared sidebar
+  API/                       REST-ish JSON endpoint for Monitor status
+assets/                   Visual identity (logos, CSS tokens, spinner)
 docs/experiments/         Reproducible step-by-step experiment scripts
                            (used to record the contest demo video)
 docs/planejamento/        Phase tracking, decisions, timeline, evidence
                            scorecard (Portuguese) — 00_MASTER_PLAN.md
                            onward, plus the conversation-context doc
+entregaveis/               Contest deliverables: user manuals (PT/EN),
+                           OSM support-model doc, and Prompts/ (the
+                           prompt sequence used to build this app with
+                           AI assistance, for the methodology criterion)
 ```
 
 ## Running it locally
@@ -289,8 +319,12 @@ during the outage.
 This project is being built with AI coding assistance (Claude Code). The
 methodology — prompts, decisions, corrections of incorrect AI suggestions,
 and validation steps — is tracked as part of the contest's evaluation
-criteria and will be detailed in the community article accompanying the
-submission.
+criteria. The actual prompt sequence (reconstructed by reverse-engineering
+from the real code, commits and phase docs where the original prompt
+wasn't preserved verbatim) lives in `entregaveis/Prompts/`, one file per
+phase/bonus, each with the real errors found and corrected — not an
+idealized version without the friction that actually happened. Full
+narrative detail in the community article accompanying the submission.
 
 ## License
 
