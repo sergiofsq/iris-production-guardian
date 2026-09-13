@@ -16,15 +16,15 @@
   (confira em Interoperability → Configure → Production, ou via
   `##class(Ens.Director).GetProductionStatus(.p,.s)` no terminal — `s` deve
   ser `1`).
-- Diretórios `/durable/guardian/{in,archive,out}` vazios (estado limpo) —
-  ver passo 0.
+- Diretórios `/durable/guardian/{in,archive,out,out_priority}` vazios
+  (estado limpo) — ver passo 0.
 
 ## Passo 0 — Garantir estado limpo
 
 ```sh
 docker exec -i iris-guardian sh -c \
-  'rm -f /durable/guardian/in/* /durable/guardian/archive/* /durable/guardian/out/* && \
-   chmod 755 /durable/guardian/out'
+  'rm -f /durable/guardian/in/* /durable/guardian/archive/* /durable/guardian/out/* /durable/guardian/out_priority/* && \
+   chmod 755 /durable/guardian/out /durable/guardian/out_priority'
 ```
 
 (Opcional para a gravação: abrir a tela do **Message Viewer**
@@ -51,13 +51,25 @@ na tela antes de quebrar nada.
 
 ## Passo 2 — Quebrar o destino (falha controlada)
 
+> **Atenção (corrigido 13/09/2026):** desde o Business Rule de roteamento
+> por severidade (`Guardian.Rule.IncidentRoutingRule`, bônus fechado
+> 10/09/2026, posterior à primeira versão deste roteiro), severidade
+> `CRITICAL`/`HIGH`/`MEDIUM` vai para `Guardian.Operation.PriorityOutputOperation`,
+> que escreve em **`/durable/guardian/out_priority`** — não mais em
+> `/durable/guardian/out` (esse continua sendo só o destino de `LOW`, via
+> `Guardian.Operation.FileOutputOperation`). Quebrar `/durable/guardian/out`
+> com uma mensagem `CRITICAL` não causa mais falha nenhuma (confirmado ao
+> vivo 13/09/2026: a mensagem é entregue normalmente em `out_priority`,
+> sem erro). O passo abaixo já reflete o diretório correto.
+
 ```sh
-docker exec -i iris-guardian chmod 555 /durable/guardian/out
+docker exec -i iris-guardian chmod 555 /durable/guardian/out_priority
 ```
 
 Isso remove a permissão de escrita do usuário `irisowner` (dono do processo
-IRIS) no diretório de saída — simula um destino indisponível (disco cheio,
-permissão negada, share fora do ar) sem tocar em nada dentro do IRIS.
+IRIS) no diretório de saída usado por incidentes `CRITICAL`/`HIGH`/`MEDIUM`
+— simula um destino indisponível (disco cheio, permissão negada, share
+fora do ar) sem tocar em nada dentro do IRIS.
 
 ## Passo 3 — Disparar o incidente que vai falhar
 
@@ -79,12 +91,13 @@ halt
 EOF
 ```
 
-**Resultado real observado (09/09/2026):** depois de ~15s (o
+**Resultado real observado (09/09/2026, reconfirmado 13/09/2026 com o
+diretório correto pós Business Rules):** depois de ~15s (o
 `FailureTimeout` padrão do `Ens.BusinessOperation`), a linha da Operation
 mostra `ErrorStatus`:
 
 ```
-ERROR #5005: Cannot open file '/durable/guardian/out/incident_INC-003.txt'
+ERROR #5005: Cannot open file '/durable/guardian/out_priority/incident_INC-003.txt'
 ```
 
 embrulhado em `<Ens>ErrFailureTimeout`. O arquivo **não aparece** em
@@ -98,7 +111,7 @@ na interface — o processo tentou escrever e o sistema operacional recusou."
 ## Passo 5 — Corrigir o destino
 
 ```sh
-docker exec -i iris-guardian chmod 755 /durable/guardian/out
+docker exec -i iris-guardian chmod 755 /durable/guardian/out_priority
 ```
 
 ## Passo 6 — Recuperação automática (mensagens novas)

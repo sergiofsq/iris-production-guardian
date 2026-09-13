@@ -58,10 +58,10 @@ depende de decisão dele.
 | # | Item | Status |
 |---|---|---|
 | 1 | Instalação a partir de checkout limpo | Não iniciado |
-| 2 | Teste formal: percurso completo | Coberto indiretamente (Fase 1-4), não re-executado como suíte formal |
-| 3 | Teste formal: falha de destino | Coberto por `docs/experiments/01_falha_recuperacao_producao.md`; reconfirmar após mudanças de UI |
-| 4 | Teste formal: falta de dados | Não iniciado |
-| 5 | Teste formal: indisponibilidade de modelo/API | Observado organicamente (503/429 reais), não formalizado como caso repetível |
+| 2 | Teste formal: percurso completo | **Feito 13/09/2026** — ver §5 |
+| 3 | Teste formal: falha de destino | **Refeito e corrigido 13/09/2026** — ver §5. `docs/experiments/01_falha_recuperacao_producao.md` estava desatualizado pelo roteamento por Business Rules, corrigido |
+| 4 | Teste formal: falta de dados | **Feito 13/09/2026** — ver §5 |
+| 5 | Teste formal: indisponibilidade de modelo/API | **Feito 13/09/2026** — formalizado como caso repetível, ver §5 |
 | 6 | Auditoria de segredos | **Quase feita, 13/09/2026** — ver §4 abaixo. Nenhum segredo real encontrado em código/histórico do git. Achado de privacidade (não segredo) nos screenshots do manual: PNGs soltos e `.docx` (PT/EN) já corrigidos; falta regenerar o `.pdf` a partir do `.docx` corrigido — bloqueado numa permissão do macOS que só o proprietário aprova fisicamente |
 | 7 | Fechamento de pendências no scorecard | Feito 11/09/2026 para o bônus API pública (PublicHealth), que estava implementado e testado mas não refletido em `00_MASTER_PLAN.md`/`07_SCORECARD_EVIDENCIAS.md`. Demais itens do scorecard seguem corretos |
 | 8 | Gravação do vídeo | Não iniciado |
@@ -69,9 +69,9 @@ depende de decisão dele.
 
 ## 3. Pendente
 
-Itens 1-5, 8 e 9 da tabela acima. Ver `00_MASTER_PLAN.md` §5 para o
-registro cronológico de pendências e `07_SCORECARD_EVIDENCIAS.md` para
-evidência item a item.
+Itens 1, 8 e 9 da tabela acima (mais a regeneração do PDF do manual, ver
+§4). Ver `00_MASTER_PLAN.md` §5 para o registro cronológico de
+pendências e `07_SCORECARD_EVIDENCIAS.md` para evidência item a item.
 
 ## 4. Auditoria de segredos (13/09/2026) — resultado
 
@@ -155,3 +155,73 @@ Salvar Como → PDF, sobrescrevendo `entregaveis/Manual_IRIS_Production_Guardian
 (ou aprovar o diálogo de permissão do macOS se pedir para repetir a
 automação). Não há PDF da versão EN para regenerar (só existe o `.docx`
 EN hoje).
+
+## 5. Testes formais dos 4 caminhos do DoD (13/09/2026) — resultado
+
+**Achado antes de começar:** a Production estava **parada**
+(`IsProductionRunning()=0`, status interno `4`) no início da sessão —
+não "Com problema" como os screenshots antigos do manual sugeriam, mas
+efetivamente desligada. `StartProduction` sozinho falhou com
+`<Ens>ErrProductionNotShutdownCleanly`; precisou de
+`##class(Ens.Director).RecoverProduction()` (sem argumentos — passar o
+nome da Production dá `<PARAMETER>` error, diferente do que uma memória
+antiga presumia) antes do `StartProduction` funcionar. Mesmo pitfall já
+documentado em memória do projeto, agora também formalizado aqui.
+
+**Teste 1 — Percurso completo:** mensagem `LOW` (`INC-FASE5-BASE`) via
+`Guardian.Service.FileIncidentService` → `Guardian.Process.IncidentRouterProcess`
+→ `Guardian.Operation.FileOutputOperation`, arquivo gerado em
+`/durable/guardian/out` em ~10s. Monitor confirmado via HTTP real (login
+`guardian`/`guardian`): `Estado: Running`, os 4 hosts `healthy`. **OK.**
+
+**Teste 2 — Falha de destino:** reprodução do roteiro completo
+(`docs/experiments/01_falha_recuperacao_producao.md`), com uma correção
+real encontrada no processo — ver a nota no próprio arquivo: severidade
+`CRITICAL` hoje roteia para `Guardian.Operation.PriorityOutputOperation`
+(`/durable/guardian/out_priority`), não mais para
+`Guardian.Operation.FileOutputOperation` (`/durable/guardian/out`) como
+na primeira versão do roteiro (anterior ao bônus Business Rules,
+10/09/2026). Quebrar o diretório errado (`out`) com uma mensagem
+`CRITICAL` **não causa falha nenhuma** — confirmado ao vivo antes de
+corrigir. Refeito quebrando `/durable/guardian/out_priority`: erro real
+capturado (`ERROR #5005: Cannot open file
+'/durable/guardian/out_priority/incident_INC-FASE5-004.txt'`,
+embrulhado em `<Ens>ErrFailureTimeout`), badge do componente muda para
+`degraded` no Investigator. Corrigido o destino: tráfego novo
+(`INC-FASE5-005`) entregue automaticamente; a mensagem que falhou não é
+reentregue sozinha (comportamento esperado do framework) —
+`##class(Ens.MessageHeader).ResendMessage(<id>)` reentrega manualmente e
+confirmado o arquivo em `out_priority`. **OK, roteiro do experimento
+corrigido para refletir a rota atual.**
+
+**Teste 3 — Falta de dados:**
+- RAG Assistant, pergunta irrelevante ("Qual a receita de bolo de
+  chocolate?") com uma investigação recente ainda em contexto: o modelo
+  respondeu "Não sei..." em vez de inventar — abstenção correta, mas via
+  o LLM (não o `abstained=1` hardcoded, que só dispara quando não há
+  nem documentos relevantes nem investigação em contexto; aqui havia
+  investigação, então o código intencionalmente deixa o modelo decidir
+  com esse grounding, ver comentário em `Guardian.RAG.Query.Ask`). O
+  caminho hardcoded (zero contexto e zero documentos relevantes) já
+  tinha sido calibrado e testado em `04_FASE_3_RAG_ASSISTANT.md` §5.
+- AI Incident Investigator, `Guardian.Service.FileIncidentService` com
+  janela de 1 minuto após 65s sem tráfego algum: `0 eventos registrados
+  na janela`, análise da IA relatou isso corretamente sem inventar
+  eventos. **OK.**
+
+**Teste 4 — Indisponibilidade de modelo/API:** formalizado como caso
+determinístico, não dependente de esperar um 429/503 real acontecer por
+acaso. Numa única sessão COS: leu a senha real da credencial `Gemini`
+para uma variável local (nunca impressa), trocou temporariamente por um
+valor inválido, chamou `Guardian.RAG.GeminiClient.Generate` diretamente
+(erro real da API: `HTTP 400: API key not valid. Please pass a valid API
+key.`, capturado como exceção COS não tratada — mesmo tipo de erro que o
+`Catch` de `Guardian.UI.RAGPage`/`InvestigatorPage` já trata e exibe como
+indisponibilidade, sem inventar resposta), e restaurou a senha original
+antes de sair da sessão. Sanity check com uma chamada real depois
+(`"responda apenas OK"` → `"OK"`) confirmou a chave restaurada
+corretamente, sem dano permanente. **OK.**
+
+**Limpeza:** `/durable/guardian/{in,archive,out,out_priority}`
+esvaziados ao final, Production deixada `Running` (estado padrão entre
+sessões).
