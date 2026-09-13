@@ -260,9 +260,33 @@ body {
   margin: 0 auto;
 }
 
+/* Tema escuro (12/09/2026): o PNG escuro (production-guardian-logo-dark.png)
+   ja vem com fundo escuro solido embutido (nao transparente) - o badge
+   branco fixo acima ficaria com uma borda branca visivel ao redor dele, por
+   isso so aqui o fundo do badge acompanha o tema (--ig-bg-strong e' quase
+   identico ao fundo do PNG escuro, para a transicao ficar sem costura). */
+:root[data-theme="dark"] .ig-sidebar .ig-logo-badge {
+  background: var(--ig-bg-strong);
+}
+
 .ig-sidebar .ig-logo-badge img {
   height: 56px;
   width: auto;
+  display: block;
+}
+
+/* Troca a logo clara/escura junto com o tema - reage direto ao atributo
+   data-theme (o mesmo que os botoes de tema/idioma alternam via JS, ver
+   Guardian.UI.Shared), sem precisar de JS proprio para a logo. */
+.ig-logo-dark {
+  display: none;
+}
+
+:root[data-theme="dark"] .ig-logo-light {
+  display: none;
+}
+
+:root[data-theme="dark"] .ig-logo-dark {
   display: block;
 }
 

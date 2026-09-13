@@ -27,7 +27,10 @@ ClassMethod RenderSidebar(pCurrentPage As %String) As %Status
 		<button type="button" class="ig-icon-btn" id="ig-theme-toggle" title="#(##class(Guardian.UI.I18n).T("toggle.theme"))#" aria-label="#(##class(Guardian.UI.I18n).T("toggle.theme"))#">#(tThemeIcon)#</button>
 		<button type="button" class="ig-icon-btn" id="ig-lang-toggle" title="#(##class(Guardian.UI.I18n).T("toggle.lang"))#" aria-label="#(##class(Guardian.UI.I18n).T("toggle.lang"))#">#(tLangTarget)#</button>
 	</div>
-	<div class="ig-logo-badge"><img src="/csp/guardian/production-guardian-logo.png" alt="Production Guardian"></div>
+	<div class="ig-logo-badge">
+		<img src="/csp/guardian/production-guardian-logo.png" alt="Production Guardian" class="ig-logo-light">
+		<img src="/csp/guardian/production-guardian-logo-dark.png" alt="Production Guardian" class="ig-logo-dark">
+	</div>
 	<nav class="ig-sidebar-nav">
 		<a href="Guardian.UI.MonitorPage.cls"#(tOnMonitor)#>#(##class(Guardian.UI.I18n).T("nav.monitor"))#</a>
 		<a href="Guardian.UI.InvestigatorPage.cls"#(tOnInvestigator)#>#(##class(Guardian.UI.I18n).T("nav.investigator"))#</a>
