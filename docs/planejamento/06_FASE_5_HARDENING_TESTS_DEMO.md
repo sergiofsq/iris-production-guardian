@@ -65,7 +65,7 @@ depende de decisão dele.
 | 6 | Auditoria de segredos | **Quase feita, 13/09/2026** — ver §4 abaixo. Nenhum segredo real encontrado em código/histórico do git. Achado de privacidade (não segredo) nos screenshots do manual: PNGs soltos e `.docx` (PT/EN) já corrigidos; falta regenerar o `.pdf` a partir do `.docx` corrigido — bloqueado numa permissão do macOS que só o proprietário aprova fisicamente |
 | 7 | Fechamento de pendências no scorecard | Feito 11/09/2026 para o bônus API pública (PublicHealth), que estava implementado e testado mas não refletido em `00_MASTER_PLAN.md`/`07_SCORECARD_EVIDENCIAS.md`. Demais itens do scorecard seguem corretos |
 | 8 | Gravação do vídeo | Não iniciado |
-| 9 | Artigo da comunidade | Não iniciado |
+| 9 | Artigo da comunidade | **Rascunho criado 13/09/2026** (`entregaveis/Artigo_Comunidade_PT.md`) — falta preencher link do Open Exchange e do vídeo, adicionar capturas de tela reais, revisão do proprietário e publicação |
 
 ## 3. Pendente
 
