@@ -50,7 +50,16 @@ ClassMethod Collect() As %DynamicObject
 	Set tResult.productionState = tProdState
 	Set tResult.collectedAt = $ZDATETIME($Horolog, 3)
 
-	Set tHosts = []
+	// Guardados em baldes por tipo durante a coleta (abaixo) e concatenados
+	// nesta ordem fixa (Service -> Process -> Operation, o fluxo real de uma
+	// mensagem entrando/saindo) antes de devolver em tResult.hosts - sem
+	// isso, a ordem vinha de "ORDER BY Item.Name" (alfabetica), que a
+	// sidebar (Guardian.UI.Shared.RenderSidebar) exibe direto, sem reagrupar
+	// por tipo como Guardian.UI.MonitorPage ja faz na pagina detalhada.
+	Set tServiceHosts = []
+	Set tProcessHosts = []
+	Set tOperationHosts = []
+	Set tOtherHosts = []
 
 	Set tStmt = ##class(%SQL.Statement).%New()
 	Set tSC = tStmt.%Prepare(
@@ -141,7 +150,24 @@ ClassMethod Collect() As %DynamicObject
 		Set tHost.recentErrorCount = tRecentErrorCount
 		Set tHost.health = tHealth
 		Set tHost.stuck = tStuck
-		Do tHosts.%Push(tHost)
+
+		If tType = "Service" {
+			Do tServiceHosts.%Push(tHost)
+		} ElseIf tType = "Process" {
+			Do tProcessHosts.%Push(tHost)
+		} ElseIf tType = "Operation" {
+			Do tOperationHosts.%Push(tHost)
+		} Else {
+			Do tOtherHosts.%Push(tHost)
+		}
+	}
+
+	Set tHosts = []
+	For tBucket = tServiceHosts, tProcessHosts, tOperationHosts, tOtherHosts {
+		Set tIter = tBucket.%GetIterator()
+		While tIter.%GetNext(.tKey, .tHost) {
+			Do tHosts.%Push(tHost)
+		}
 	}
 
 	Set tResult.hosts = tHosts

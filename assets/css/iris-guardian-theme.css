@@ -401,78 +401,150 @@ body {
  * Indicador de carregamento para botoes de acao (Investigar/Perguntar) que
  * disparam uma chamada ao modelo de IA e recarregam a pagina - sem esse
  * sinal visual o clique parecia nao ter feito nada e o usuario clicava de
- * novo. Aplicado via JS (ver InvestigatorPage/RAGPage/RAGAltPage) no
- * submit do formulario: desabilita o botao (evita reenvio duplicado) e
- * acrescenta o spinner abaixo.
+ * novo. Aplicado via JS (ver Guardian.UI.Shared.RenderLoadingScript,
+ * chamado por InvestigatorPage/RAGPage/RAGAltPage) no submit do
+ * formulario: desabilita o botao (evita reenvio duplicado) e revela o
+ * overlay modal abaixo.
  */
 button:disabled {
   cursor: wait;
   opacity: 0.75;
 }
 
-.ig-btn-loading::after {
-  content: "";
-  display: inline-block;
-  width: 0.8em;
-  height: 0.8em;
-  margin-left: 0.6em;
-  border: 2px solid currentColor;
-  border-right-color: transparent;
-  border-radius: 50%;
-  vertical-align: -0.15em;
-  animation: ig-spin 0.6s linear infinite;
-}
-
-@keyframes ig-spin {
-  to { transform: rotate(360deg); }
-}
-
 /*
- * Banner de carregamento (12/09/2026) - o spinner discreto no botao (acima)
- * passou despercebido: usuario continuava sem sinal claro de processamento
- * em andamento. Este banner usa o proprio emblema do escudo IRIS Guardian
- * (recortado/com fundo removido a partir de assets/production-guardian-logo.png,
- * ver assets/iris-guardian-spinner.png) girando continuamente - grande o
- * suficiente para nao passar despercebido, mas consistente com a marca do
- * produto em vez de um spinner generico. Fica oculto (atributo HTML
- * "hidden") ate o JS de cada pagina revelar no submit do formulario -
- * ".ig-loading[hidden]" precisa ser explicito porque a regra de display
- * abaixo (autor) teria prioridade sobre o "display:none" nativo do atributo
- * hidden (regra do UA), senao o elemento nao ficaria de fato escondido antes
- * do clique.
+ * Overlay modal de carregamento (17/09/2026, Ajustes.txt itens 1 e 3) -
+ * substitui o banner inline/emblema anterior (que passava despercebido e,
+ * por um bug de timing entre a mutacao do DOM e a navegacao GET, muitas
+ * vezes nem chegava a ser pintado na tela antes da pagina recarregar - ver
+ * Guardian.UI.Shared.RenderLoadingScript). Cobre a aplicacao inteira
+ * (position:fixed) com um fundo escuro para sinalizar inatividade, como a
+ * abertura de um modal, com um spinner radial animado nos tons da marca
+ * (teal) centralizado - sem imagem/fundo branco algum, so CSS.
+ * ".ig-loading-overlay[hidden]" precisa ser explicito porque a regra de
+ * "display:flex" abaixo (autor) teria prioridade sobre o "display:none"
+ * nativo do atributo hidden (regra do UA).
  */
-.ig-loading[hidden] {
+.ig-loading-overlay[hidden] {
   display: none;
 }
 
-.ig-loading {
+.ig-loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
   display: flex;
   align-items: center;
-  gap: 0.9rem;
-  background: var(--ig-tint);
-  border: 1px solid var(--ig-border);
-  border-left: 4px solid var(--ig-teal-500);
+  justify-content: center;
+  background: color-mix(in srgb, var(--ig-navy-900) 80%, transparent);
+}
+
+/* Sem fade-in aqui de proposito: a resposta pode chegar em poucas centenas
+   de milissegundos (ex. abstencao sem chamar o modelo), e uma transicao de
+   opacidade faria o overlay nem chegar a ficar totalmente visivel antes da
+   pagina navegar - o sinal precisa aparecer em opacidade plena de imediato. */
+
+/* Trava o scroll do conteudo por tras do overlay enquanto ele esta aberto -
+   mesmo comportamento esperado de um modal. */
+body.ig-modal-open {
+  overflow: hidden;
+}
+
+.ig-loading-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  max-width: 360px;
+  padding: 2rem;
+  text-align: center;
+}
+
+/* Logo ao lado do spinner (Ajustes.txt item 4) - mesma logica de troca
+   clara/escura por tema que a sidebar (ver .ig-logo-badge), num badge
+   proprio porque nenhum dos dois PNGs e' transparente. */
+.ig-loading-brand {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.ig-loading-logo-badge {
+  display: flex;
+  align-items: center;
+  background: var(--ig-white);
   border-radius: var(--ig-radius-sm);
-  padding: 0.85rem 1.1rem;
-  margin-bottom: 1.25rem;
-  color: var(--ig-text);
+  padding: 0.55rem 0.9rem;
+  box-shadow: var(--ig-shadow);
+}
+
+:root[data-theme="dark"] .ig-loading-logo-badge {
+  background: var(--ig-bg-strong);
+}
+
+.ig-loading-logo-badge img {
+  height: 40px;
+  width: auto;
+  display: block;
+}
+
+.ig-loading-logo-badge .ig-logo-dark {
+  display: none;
+}
+
+:root[data-theme="dark"] .ig-loading-logo-badge .ig-logo-light {
+  display: none;
+}
+
+:root[data-theme="dark"] .ig-loading-logo-badge .ig-logo-dark {
+  display: block;
+}
+
+.ig-loading-text {
+  margin: 0;
+  color: var(--ig-white);
   font-size: 0.9rem;
-  perspective: 400px;
+  line-height: 1.4;
 }
 
-/* Gira no proprio eixo vertical (rotateY), como uma moeda rodando sobre a
-   mesa - nao no sentido horario do relogio (rotate 2D simples, usado ainda
-   no spinner generico do botao acima). "perspective" no container pai da
-   profundidade 3D para o efeito de afinar/alargar durante o giro. */
-.ig-loading-emblem {
-  width: 44px;
-  height: auto;
-  flex: 0 0 auto;
-  animation: ig-coin-spin 1.6s linear infinite;
+/* Spinner radial de 12 barras, cada uma com opacidade decrescente e um
+   atraso de animacao escalonado - a rotacao aparente vem do escalonamento
+   dos atrasos, nao de um "transform: rotate" no container (mesma tecnica
+   do indicador de atividade nativo do iOS/macOS). */
+.ig-spinner {
+  position: relative;
+  width: 64px;
+  height: 64px;
 }
 
-@keyframes ig-coin-spin {
-  to { transform: rotateY(360deg); }
+.ig-spinner span {
+  position: absolute;
+  top: 3px;
+  left: 50%;
+  width: 6px;
+  height: 18px;
+  margin-left: -3px;
+  border-radius: 3px;
+  background: var(--ig-teal-500);
+  transform-origin: 3px 29px;
+  animation: ig-spinner-fade 1.1s linear infinite;
+}
+
+.ig-spinner span:nth-child(1)  { transform: rotate(0deg);   animation-delay: -1.008s; }
+.ig-spinner span:nth-child(2)  { transform: rotate(30deg);  animation-delay: -0.916s; }
+.ig-spinner span:nth-child(3)  { transform: rotate(60deg);  animation-delay: -0.825s; }
+.ig-spinner span:nth-child(4)  { transform: rotate(90deg);  animation-delay: -0.733s; }
+.ig-spinner span:nth-child(5)  { transform: rotate(120deg); animation-delay: -0.641s; }
+.ig-spinner span:nth-child(6)  { transform: rotate(150deg); animation-delay: -0.550s; }
+.ig-spinner span:nth-child(7)  { transform: rotate(180deg); animation-delay: -0.458s; }
+.ig-spinner span:nth-child(8)  { transform: rotate(210deg); animation-delay: -0.366s; }
+.ig-spinner span:nth-child(9)  { transform: rotate(240deg); animation-delay: -0.275s; }
+.ig-spinner span:nth-child(10) { transform: rotate(270deg); animation-delay: -0.183s; }
+.ig-spinner span:nth-child(11) { transform: rotate(300deg); animation-delay: -0.091s; }
+.ig-spinner span:nth-child(12) { transform: rotate(330deg); animation-delay: 0s; }
+
+@keyframes ig-spinner-fade {
+  0% { opacity: 1; }
+  100% { opacity: 0.12; }
 }
 
 /*

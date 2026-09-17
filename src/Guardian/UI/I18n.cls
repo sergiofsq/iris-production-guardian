@@ -78,6 +78,7 @@ ClassMethod Dict(ByRef d) [ Private ]
 	Set d("health.stuck","pt")="travado", d("health.stuck","en")="stuck"
 
 	// Guardian.UI.MonitorPage
+	Set d("monitor.h1","pt")="Production Monitor", d("monitor.h1","en")="Production Monitor"
 	Set d("monitor.meta_production","pt")="Production:", d("monitor.meta_production","en")="Production:"
 	Set d("monitor.meta_state","pt")="Estado:", d("monitor.meta_state","en")="State:"
 	Set d("monitor.meta_collected","pt")="Coletado em:", d("monitor.meta_collected","en")="Collected at:"
@@ -94,6 +95,7 @@ ClassMethod Dict(ByRef d) [ Private ]
 	Set d("monitor.legend","en")="States: <strong>healthy</strong> = no pending queue and no recent error &middot; <strong>degraded</strong> = pending queue or error in the last #WINDOW# seconds &middot; <strong>unavailable</strong> = host disabled or Production stopped &middot; <strong>unknown</strong> = no message recorded yet for this host (absence of data is not health) &middot; <strong>stuck</strong> = positive queue that hasn't drained in the last 3 persisted samples. Time series persisted on each load of this page or API call (/api/guardian/status) - no independent scheduled collector in this v1."
 
 	// Guardian.UI.InvestigatorPage
+	Set d("investigator.h1","pt")="AI Incident Investigator", d("investigator.h1","en")="AI Incident Investigator"
 	Set d("investigator.subtitle","pt")="Evidência real (métricas, eventos e documentação) + análise assistida por IA. Só leitura - nenhuma remediação automática.", d("investigator.subtitle","en")="Real evidence (metrics, events and documentation) + AI-assisted analysis. Read-only - no automatic remediation."
 	Set d("investigator.component_label","pt")="Componente", d("investigator.component_label","en")="Component"
 	Set d("investigator.select","pt")="Selecione...", d("investigator.select","en")="Select..."

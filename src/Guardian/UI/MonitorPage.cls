@@ -18,8 +18,8 @@ ClassMethod OnPage() As %Status
 <head>
 <meta charset="utf-8">
 <meta http-equiv="refresh" content="10">
-<title>IRIS Production Guardian - Monitor</title>
-<link rel="stylesheet" href="/csp/guardian/assets/css/iris-guardian-theme.css?v=2">
+<title>IRIS Production Guardian - #(##class(Guardian.UI.I18n).T("monitor.h1"))#</title>
+<link rel="stylesheet" href="/csp/guardian/assets/css/iris-guardian-theme.css?v=3">
 <style>
 	main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
 	h1 { color: var(--ig-on-bg-text); font-size: 1.4rem; margin-bottom: 0.25rem; }
@@ -52,7 +52,7 @@ ClassMethod OnPage() As %Status
 	Do ##class(Guardian.UI.Shared).RenderSidebar("monitor")
 
 	&html<<main class="ig-main">
-<h1>Production Monitor</h1>
+<h1>#(##class(Guardian.UI.I18n).T("monitor.h1"))#</h1>
 <div class="meta">
 	#(##class(Guardian.UI.I18n).T("monitor.meta_production"))# <strong>#(tData.production)#</strong> &middot;
 	#(##class(Guardian.UI.I18n).T("monitor.meta_state"))# <strong>#(tData.productionState)#</strong> &middot;

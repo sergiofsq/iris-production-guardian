@@ -92,6 +92,119 @@ ClassMethod RenderSidebar(pCurrentPage As %String) As %Status
 	Quit $$$OK
 }
 
+/// Overlay de carregamento em estilo modal (17/09/2026, ver Ajustes.txt
+/// itens 1 e 3) - chamado uma vez por pagina, junto com RenderLoadingScript
+/// abaixo, pelas 3 paginas com formulario que dispara uma chamada de IA
+/// (Guardian.UI.RAGPage, RAGAltPage, InvestigatorPage). pBannerKey e a
+/// chave I18n da mensagem exibida (ex. "rag.loading_banner"). Fica oculto
+/// (atributo "hidden") ate o JS de RenderLoadingScript revelar no submit.
+/// A logo ao lado do spinner (Ajustes.txt item 4, 17/09/2026) reaproveita o
+/// mesmo par de PNGs claro/escuro e o mesmo troca-automatico por tema que a
+/// sidebar ja usa (ver .ig-logo-badge acima) - nenhum dos dois PNGs e'
+/// transparente, entao precisam do proprio "badge" (fundo solido + sombra)
+/// para nao aparecerem com uma borda recortada sobre o overlay escuro.
+ClassMethod RenderLoadingOverlay(pBannerKey As %String) As %Status
+{
+	&html<<div class="ig-loading-overlay" id="ig-loading" hidden role="status" aria-live="polite">
+	<div class="ig-loading-modal">
+		<div class="ig-loading-brand">
+			<div class="ig-loading-logo-badge">
+				<img src="/csp/guardian/production-guardian-logo.png" alt="Production Guardian" class="ig-logo-light">
+				<img src="/csp/guardian/production-guardian-logo-dark.png" alt="Production Guardian" class="ig-logo-dark">
+			</div>
+			<div class="ig-spinner" aria-hidden="true">
+				<span></span><span></span><span></span><span></span>
+				<span></span><span></span><span></span><span></span>
+				<span></span><span></span><span></span><span></span>
+			</div>
+		</div>
+		<p class="ig-loading-text">#(##class(Guardian.UI.I18n).T(pBannerKey))#</p>
+	</div>
+</div>>
+
+	Quit $$$OK
+}
+
+/// Script de submit compartilhado pelas mesmas 3 paginas (ver
+/// RenderLoadingOverlay acima) - desabilita o botao, revela o overlay e
+/// busca a MESMA URL via fetch() em vez de deixar o formulario navegar de
+/// verdade.
+///
+/// Por que fetch() e nao form.submit(): as 3 paginas sao formularios GET
+/// simples (recarregam a pagina inteira, filosofia original do projeto -
+/// "sem chamada assincrona", ver comentario de classe de RAGPage) - a
+/// primeira versao deste script so adiava a navegacao com requestAnimationFrame
+/// duplo + um atraso minimo antes de chamar form.submit(). Isso resolvia o
+/// loader nao aparecer no clique (Ajustes.txt item 1), mas nao resolvia ele
+/// SUMIR CEDO DEMAIS num processamento realmente lento: confirmado ao vivo
+/// com Playwright segurando a resposta do servidor por 4s de proposito
+/// (interceptando a requisicao) que o navegador destroi o contexto JS da
+/// pagina antiga poucas centenas de ms depois de form.submit() ser chamado
+/// - MUITO antes da resposta chegar, nao quando ela chega. Ou seja, durante
+/// o processamento real o usuario via a tela de carregamento NATIVA do
+/// navegador (em branco), nao o nosso overlay - o oposto do que Ajustes.txt
+/// pediu ("o loader ficar ativo até a página acabar de processar").
+/// form.submit() so foi trocado por fetch(); o restante do fluxo (overlay,
+/// desabilitar botao) e o mesmo.
+///
+/// Com fetch(), a pagina atual nunca e descartada: a resposta (o MESMO HTML
+/// completo que a pagina sempre gerou, servidor sem nenhuma mudanca) chega
+/// como texto, e document.open()/write()/close() substitui a pagina inteira
+/// no MESMO documento, sem navegacao - o overlay so some quando o novo
+/// conteudo esta de fato pronto para substituir o antigo. Um erro de rede
+/// real (servidor fora do ar) cai no catch, que faz form.submit() como
+/// ultimo recurso (navegacao de verdade) para o usuario nao ficar preso
+/// numa tela de carregamento eterna.
+///
+/// MIN_VISIBLE_MS evita que uma resposta MUITO rapida (RAG que abstem sem
+/// chamar o modelo, por exemplo) faca o overlay aparecer e sumir tao rapido
+/// que pareca um "flash" em vez de um sinal de carregamento perceptivel.
+ClassMethod RenderLoadingScript() As %Status
+{
+	&html<<script>
+(function () {
+	var MIN_VISIBLE_MS = 500;
+	var form = document.querySelector("form");
+	if (!form) { return; }
+	form.addEventListener("submit", function (evt) {
+		var btn = form.querySelector("button[type=submit]");
+		if (!btn || btn.disabled) { return; }
+		evt.preventDefault();
+		btn.disabled = true;
+		btn.setAttribute("aria-busy", "true");
+		var loadingText = btn.getAttribute("data-loading-text");
+		if (loadingText) { btn.textContent = loadingText; }
+		var overlay = document.getElementById("ig-loading");
+		if (overlay) { overlay.hidden = false; }
+		document.body.classList.add("ig-modal-open");
+
+		var params = new URLSearchParams(new FormData(form)).toString();
+		var baseUrl = form.action.split("?")[0];
+		var url = baseUrl + (params ? "?" + params : "");
+		var startedAt = Date.now();
+
+		fetch(url, { credentials: "same-origin" })
+			.then(function (resp) { return resp.text(); })
+			.then(function (html) {
+				var elapsed = Date.now() - startedAt;
+				var wait = Math.max(0, MIN_VISIBLE_MS - elapsed);
+				setTimeout(function () {
+					try { history.pushState(null, "", url); } catch (e) { /* ignore */ }
+					document.open();
+					document.write(html);
+					document.close();
+				}, wait);
+			})
+			.catch(function () {
+				form.submit();
+			});
+	});
+})();
+</script>>
+
+	Quit $$$OK
+}
+
 /// Prepara texto dinamico (resposta do modelo, trechos de documentos) para
 /// exibicao em HTML: escapa primeiro (nunca confia em conteudo vindo de
 /// documentos ingeridos ou do modelo de IA para virar HTML puro - alem de

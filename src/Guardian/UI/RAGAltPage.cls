@@ -63,7 +63,7 @@ ClassMethod OnPage() As %Status
 <head>
 <meta charset="utf-8">
 <title>IRIS Production Guardian - #(##class(Guardian.UI.I18n).T("nav.ragalt"))#</title>
-<link rel="stylesheet" href="/csp/guardian/assets/css/iris-guardian-theme.css?v=2">
+<link rel="stylesheet" href="/csp/guardian/assets/css/iris-guardian-theme.css?v=3">
 <style>
 	main { max-width: 800px; margin: 0 auto; padding: 2rem 1.5rem; }
 	h1 { color: var(--ig-on-bg-text); font-size: 1.4rem; margin-bottom: 1.5rem; }
@@ -106,27 +106,10 @@ ClassMethod OnPage() As %Status
 	&html<<form method="get">
 	<input type="text" name="q" placeholder="#(##class(Guardian.UI.I18n).T("rag.placeholder"))#" value="#(tQuestion)#" autofocus>
 	<button type="submit" data-loading-text="#(##class(Guardian.UI.I18n).T("rag.submit_loading"))#">#(##class(Guardian.UI.I18n).T("rag.submit"))#</button>
-</form>
-<div class="ig-loading" id="ig-loading" hidden>
-	<img src="/csp/guardian/iris-guardian-spinner.png" alt="" class="ig-loading-emblem">
-	<span>#(##class(Guardian.UI.I18n).T("rag.loading_banner"))#</span>
-</div>
-<script>
-(function () {
-	var form = document.querySelector("form");
-	if (!form) { return; }
-	form.addEventListener("submit", function () {
-		var btn = form.querySelector("button[type=submit]");
-		if (!btn || btn.disabled) { return; }
-		btn.disabled = true;
-		btn.setAttribute("aria-busy", "true");
-		btn.textContent = btn.getAttribute("data-loading-text") || "Processando...";
-		btn.classList.add("ig-btn-loading");
-		var loading = document.getElementById("ig-loading");
-		if (loading) { loading.hidden = false; }
-	});
-})();
-</script>>
+</form>>
+
+	Do ##class(Guardian.UI.Shared).RenderLoadingOverlay("rag.loading_banner")
+	Do ##class(Guardian.UI.Shared).RenderLoadingScript()
 
 	If (tSubmittedQuestion '= "") {
 		Set tResp = ""

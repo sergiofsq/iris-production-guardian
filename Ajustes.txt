@@ -1,0 +1,9 @@
+Aplicação:
+
+FEITO 1) sempre que houver um botão e houver algum processamento ou pesquisa, deve aparecer carregar o Loader. Por exemplo, na pagina do RAG Groq o botão Ask quando clicado, não sinaliza ao usuário este processamento. Isso acontece também na página Investigator. Revise toda a aplicação
+FEITO 2) O sistema tem que obedecer as opções de linguagem do usuário, então, se estiver selecionado PT, tudo deve estar em portugues. Revise toda a aplicação nas 2 linguagens.
+FEITO 3) Vamos mudar o layout do sinal de ocupado. Na pasta Imagens/Config existe um arquivo de nome LoaderRosa.jpg. Voce precisa criar um, nos tons de cores da nossa aplicação para susbstituir o loader atual que temos. Ele vai aparecer no meio da tela, sobrepondo a a plicação, que ficará em um tom escuro para mostrar inatividade. Esse coportamento lembra muito uma abertura de modal. Este ícone do loader deve ser animado, rodando. Retire o fundo branco para dar mais realismo.
+FEITO 4) O Loader ficou ótimo, mas gostaria que ao lado do loader aparecesse a logo do PRODUCTION GUARDIAN.. de forma elegante.
+
+FEITO 5) Gostei do roteiro, 08_ROTEIRO_GRAVACAO_VIDEO.md, mas tenho observações:
+FEITO 5.1 - eu não quero ter que consultar outros arquivos, então, descreva exatamente o que devo fazer, quais comando e onde devo executar. Os links das telas que vou apresentar e tudo mais. Gostei das sugestões do que eu tenho que falar em que hora. Então, pode regerar neste formato.

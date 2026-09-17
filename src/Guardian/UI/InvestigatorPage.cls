@@ -32,8 +32,8 @@ ClassMethod OnPage() As %Status
 <html lang="#(tHtmlLang)#"#(tThemeAttr)#>
 <head>
 <meta charset="utf-8">
-<title>IRIS Production Guardian - AI Incident Investigator</title>
-<link rel="stylesheet" href="/csp/guardian/assets/css/iris-guardian-theme.css?v=2">
+<title>IRIS Production Guardian - #(##class(Guardian.UI.I18n).T("investigator.h1"))#</title>
+<link rel="stylesheet" href="/csp/guardian/assets/css/iris-guardian-theme.css?v=3">
 <style>
 	main { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
 	h1 { color: var(--ig-on-bg-text); font-size: 1.4rem; margin-bottom: 0.25rem; }
@@ -72,7 +72,7 @@ ClassMethod OnPage() As %Status
 	Do ##class(Guardian.UI.Shared).RenderSidebar("investigator")
 
 	&html<<main class="ig-main">
-<h1>AI Incident Investigator</h1>
+<h1>#(##class(Guardian.UI.I18n).T("investigator.h1"))#</h1>
 <div class="subtitle">#(##class(Guardian.UI.I18n).T("investigator.subtitle"))#</div>
 <form method="get">
 	<label for="component">#(##class(Guardian.UI.I18n).T("investigator.component_label"))#</label>
@@ -89,27 +89,10 @@ ClassMethod OnPage() As %Status
 	<label for="window">#(##class(Guardian.UI.I18n).T("investigator.window_label"))#</label>
 	<input type="number" name="window" id="window" min="1" value="#(tWindowMinutes)#">
 	<button type="submit" data-loading-text="#(##class(Guardian.UI.I18n).T("investigator.submit_loading"))#">#(##class(Guardian.UI.I18n).T("investigator.submit"))#</button>
-</form>
-<div class="ig-loading" id="ig-loading" hidden>
-	<img src="/csp/guardian/iris-guardian-spinner.png" alt="" class="ig-loading-emblem">
-	<span>#(##class(Guardian.UI.I18n).T("investigator.loading_banner"))#</span>
-</div>
-<script>
-(function () {
-	var form = document.querySelector("form");
-	if (!form) { return; }
-	form.addEventListener("submit", function () {
-		var btn = form.querySelector("button[type=submit]");
-		if (!btn || btn.disabled) { return; }
-		btn.disabled = true;
-		btn.setAttribute("aria-busy", "true");
-		btn.textContent = btn.getAttribute("data-loading-text") || "Processando...";
-		btn.classList.add("ig-btn-loading");
-		var loading = document.getElementById("ig-loading");
-		if (loading) { loading.hidden = false; }
-	});
-})();
-</script>>
+</form>>
+
+	Do ##class(Guardian.UI.Shared).RenderLoadingOverlay("investigator.loading_banner")
+	Do ##class(Guardian.UI.Shared).RenderLoadingScript()
 
 	If (tComponent '= "") {
 		Set tResult = ##class(Guardian.Investigator.Analyzer).Investigate(tComponent, tWindowMinutes, ##class(Guardian.UI.I18n).Lang())
