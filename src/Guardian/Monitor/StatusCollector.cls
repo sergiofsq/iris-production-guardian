@@ -118,12 +118,30 @@ ClassMethod Collect() As %DynamicObject
 		Do tErrRS.%Next()
 		Set tRecentErrorCount = +tErrRS.%Get("N")
 
+		// Erro nao recuperado: o ultimo erro envolvendo o host ainda nao foi
+		// seguido de uma mensagem concluida com sucesso no mesmo caminho
+		// (origem -> destino). Mantem "degraded" enquanto o destino continua
+		// quebrado, mesmo depois da janela de erro recente expirar.
+		Set tUnrecovered = 0
+		Set tLastErrStmt = ##class(%SQL.Statement).%New()
+		Do tLastErrStmt.%Prepare(
+			"SELECT TOP 1 ID, SourceConfigName, TargetConfigName FROM Ens.MessageHeader WHERE (SourceConfigName = ? OR TargetConfigName = ?) AND ErrorStatus <> 1 ORDER BY ID DESC")
+		Set tLastErrRS = tLastErrStmt.%Execute(tName, tName)
+		If tLastErrRS.%Next() {
+			Set tOkStmt = ##class(%SQL.Statement).%New()
+			Do tOkStmt.%Prepare(
+				"SELECT COUNT(*) AS N FROM Ens.MessageHeader WHERE ID > ? AND SourceConfigName = ? AND TargetConfigName = ? AND ErrorStatus = 1 AND Status = 9")
+			Set tOkRS = tOkStmt.%Execute(tLastErrRS.%Get("ID"), tLastErrRS.%Get("SourceConfigName"), tLastErrRS.%Get("TargetConfigName"))
+			Do tOkRS.%Next()
+			Set tUnrecovered = ('+tOkRS.%Get("N"))
+		}
+
 		// Regras de saude - ver docs/planejamento/03_FASE_2_PRODUCTION_MONITOR_WSGI_TELEMETRY.md secao 3
 		If ('tProdRunning) || ('tEnabled) {
 			Set tHealth = "unavailable"
 		} ElseIf (tMessageCount = 0) {
 			Set tHealth = "unknown"
-		} ElseIf (tQueueCount > 0) || (tRecentErrorCount > 0) {
+		} ElseIf (tQueueCount > 0) || (tRecentErrorCount > 0) || tUnrecovered {
 			Set tHealth = "degraded"
 		} Else {
 			Set tHealth = "healthy"

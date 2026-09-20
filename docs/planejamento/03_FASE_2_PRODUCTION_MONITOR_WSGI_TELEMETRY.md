@@ -44,10 +44,14 @@ Calculadas por host, nesta ordem:
    (contexto, seção 2).
 3. **Degradado** — host habilitado, Production rodando, com histórico, e
    pelo menos uma das condições: (a) fila pendente (`Ens.Queue.GetCount`)
-   maior que zero; (b) pelo menos um erro (`ErrorStatus <> 1`) nos últimos
-   15 minutos envolvendo esse host.
+   maior que zero; (b) pelo menos um erro (`ErrorStatus <> 1`) na janela de
+   erro recente (`ErrorWindowSeconds`, 15 s) envolvendo esse host; (c) erro
+   não recuperado — o último erro envolvendo o host ainda não foi seguido
+   de uma mensagem concluída com sucesso (`Status = 9`) no mesmo caminho
+   origem → destino (adicionado em 20/09/2026: sem isso o host voltava a
+   `healthy` após 15 s mesmo com o destino ainda quebrado).
 4. **Saudável** — habilitado, Production rodando, com histórico, sem fila
-   pendente e sem erro nos últimos 15 minutos.
+   pendente, sem erro recente e sem erro não recuperado.
 
 Janela de 15 minutos escolhida por ser o mesmo valor do `FailureTimeout`
 padrão observado em `Ens.BusinessOperation` (Fase 1) — não é um valor
@@ -134,7 +138,7 @@ o Monitor no meio do processo:
 |---|---|
 | Antes da falha | todos os hosts `healthy` |
 | ~20s após quebrar o destino e disparar um incidente | `Guardian.Operation.FileOutputOperation` e `Guardian.Process.IncidentRouterProcess` (os dois lados da mensagem com erro) mudam para `degraded`, `recentErrorCount: 1`. `Guardian.Service.FileIncidentService` (não envolvido nesse erro) continua `healthy` |
-| Destino corrigido + mensagem nova enviada com sucesso | hosts **continuam `degraded`** por um tempo — comportamento esperado, não bug: a janela de erro recente é de 15 minutos, então "degraded" significa "houve um erro nos últimos 15 min", não "há um erro agora". A fila (`queueCount`) já volta a `0` imediatamente, que é o sinal de que o tráfego atual está fluindo |
+| Destino corrigido + mensagem nova enviada com sucesso | hosts voltam a `healthy` assim que uma mensagem nova conclui com sucesso no mesmo caminho (regra de erro não recuperado, 20/09/2026); enquanto o destino continua quebrado, permanecem `degraded` mesmo depois de a janela de 15 s expirar |
 
 Isso confirma o "Aceite proposto" do Monitor (contexto, seção 2): a falha
 altera os indicadores de forma rastreável, e a saúde não é escondida nem
