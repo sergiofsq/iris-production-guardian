@@ -7,3 +7,106 @@ FEITO 4) O Loader ficou ótimo, mas gostaria que ao lado do loader aparecesse a 
 
 FEITO 5) Gostei do roteiro, 08_ROTEIRO_GRAVACAO_VIDEO.md, mas tenho observações:
 FEITO 5.1 - eu não quero ter que consultar outros arquivos, então, descreva exatamente o que devo fazer, quais comando e onde devo executar. Os links das telas que vou apresentar e tudo mais. Gostei das sugestões do que eu tenho que falar em que hora. Então, pode regerar neste formato.
+
+FEITO 6) Melhorar o arquivo 08b_ROTEIRO_GRAVACAO_VIDEO_VISUAL.pdf
+FEITO 6.1 Abertura (sugerir a fala exata sobre o que é o Production Monitor, AI Incidente Investigator, Rag Assistant)
+FEITO 6.1.1 Crie um prompt, e escreva aqui, logo abaixo deste item 6.1.1 com a descrição de um slide ou fluxo estilo bpm para que eu faça a abertura. O Prompt irei colocar em outra ia para gerar. Lembre-se de falar sobre as cores para mantermos a identidade visual de nossa aplicação.
+
+RESPOSTA (18/09/2026) - Prompt pronto para colar numa IA geradora de imagem (Gemini, ChatGPT, Ideogram etc.), já usando as cores reais de assets/css/iris-guardian-theme.css. Cópia completa também está em 08_ROTEIRO_GRAVACAO_VIDEO_V2.md, seção 1.1:
+
+Design a single widescreen (16:9, 1920x1080) title slide for the opening of a product demo video called "IRIS Production Guardian", built on InterSystems IRIS. Style: clean, modern, minimal enterprise SaaS dashboard aesthetic, flat design, soft shadows, rounded rectangles, no photorealism, no stock-photo people, no watermarks.
+
+Color palette (use exactly these hex values):
+- Primary background: deep navy blue gradient from #0A1965 to #102F8B.
+- Accent / highlight color: teal #01989C and cyan #0FD1C4.
+- Card surfaces: white #FFFFFF.
+- Secondary surface: light gray #F0F3F9.
+- Title text: white. Subtitle text: teal #0FD1C4.
+
+Layout: a horizontal BPM-style flow of 3 connected rounded rectangle cards, left to right, connected by thin teal arrows, on the navy gradient background. Each card has a simple line icon at the top and a label + short sublabel below:
+- Card 1 - icon: pulse/heartbeat monitor - label "Production Monitor" - sublabel "Real-time health of every host".
+- Card 2 - icon: magnifying glass over a warning triangle - label "AI Incident Investigator" - sublabel "Evidence-based root-cause analysis".
+- Card 3 - icon: chat bubble with a document - label "RAG Assistant" - sublabel "Cited answers from the project's own docs".
+
+Above the flow: bold white title "IRIS Production Guardian", with a smaller teal subtitle underneath: "Built entirely on InterSystems IRIS". Keep all text minimal and legible at video-thumbnail distance. Export as a single flat image, no borders.
+
+FEITO 6.2 sh docs/experiments/loop_trafego_saudavel.sh - Mostrar como eu posso acompanhar o processo rodando em loop
+
+FEITO 6.3 este comando: docker exec -i iris-guardian sh -c \
+ 'echo "INC-003|IRIS.Service.PaymentGateway|CRITICAL|Simulated write failure at
+destination" > /durable/guardian/in/demo3.txt && \
+ chown irisowner:irisowner /durable/guardian/in/demo3.txt' é inteiro um só? Ou tenho que rodar parte por parte do comando. O que for comando separado, sempre enumerar por exemplo: 1 - docher executivo -i... 2 -  chown irisowner
+
+Outro exemplo que deve ser corrigido:
+docker exec -i iris-guardian sh -c \
+ 'echo "INC-004|IRIS.Service.PaymentGateway|LOW|Normal flow after destination recovery" >
+/durable/guardian/in/demo4.txt && \
+ chown irisowner:irisowner /durable/guardian/in/demo4.txt'
+
+Eu não sei se isso tudo é um comando só ou são vários. De toda forma, quando eu copio e colo no terminal, cola com quebras de linhas e isso é ruim para o terminal interpretar.
+
+
+FEITO 6.4 Comparar com a tela anterior: FileIncidentService e FileOutputOperation continuam verdes; só
+IncidentRouterProcess e PriorityOutputOperation (o caminho da falha) ficam amarelos. Escreva exatamente o que eu preciso dizer. Escreva as sugestões de fala sempre em primeira pessoa e com o conteúdo da fala, não apenas indique o que dizer. Lembre-se que eu não tenho experiencia com interoperability.
+
+FEITO 6.5 todas as indicações de abrir ou clicar em um menu, deve ter o nome do menu. Exemplo: Abrir Guardian.UI.InvestigatorPage.cls.. Isso não me ajuda pois não vou ficar digitando no browser o caminho físico da classe InvestigatorPage.cls. O correto seria vc escrever algo do tipo: clique em INVESTIGATOR no menu lateral esquerdo. Faça isso para todo o documento. Outro exemplo: Abrir Guardian.UI.RAGPage.cls (Gemini) ou Guardian.UI.RAGAltPage.cls (Groq). Deve citar o nome dos menus, e não a página fixa.
+
+FEITO 6.6 abrir o Rule Editor (URL no arquivo .md, seção 7) - Eu preciso que ja me indique o local exato onde abrir, pode capturar a tela do Interoperability e printar e colocar o sinal de bolinha vermelha informando onde eu clico. Também, escreva exatamente o que eu devo falar.
+O que eu devo falar em Hybrid search? Deve ter detalhado o que falar.
+
+FEITO 6.7 - Encerramento — resumir os três módulos, os bônus, e onde encontrar o repositório. - Me diga exatamente o que falar, escreva os Links e tudo o que eu precisar para não ter que lembrar de nada externo à este documento.
+
+
+FEITO 7) Gerar a versao FINAL de 08_ROTEIRO_GRAVACAO_VIDEO_V5.pdf com prints reais (registrado em 19/09/2026, concluido 19/09/2026)
+Situacao final: V4 teve 23 dos 25 prints capturados ao vivo pelo Claude sozinho (Playwright headless contra a aplicacao e o Management Portal reais, mesmos comandos docker desta sessao). Os 2 restantes (P01 mesa de gravacao, P25 pasta entregaveis/Prompts no Finder) exigiam a tela FISICA do Mac - o dono capturou os dois manualmente (Cmd+Shift+4) e colocou em Imagens/Aplicacao/P01.jpg e P25.jpg. O Claude incorporou os dois e gerou docs/planejamento/08_ROTEIRO_GRAVACAO_VIDEO_V5.pdf (34 paginas, 25 prints + R1/R2, ZERO pendencias). Builder final: docs/planejamento/_v3_build/build_v5.js.
+3 correcoes reais encontradas testando ao vivo (incorporadas desde a V4, mantidas na V5):
+  (a) o print do erro #5005 precisa de 2 cliques a mais do que a V3 descrevia: mensagem -> aba Trace -> "View Full Trace" (abre janela nova) -> clicar no losango vermelho na coluna Operations;
+  (b) depois de corrigir a permissao e mandar trafego novo, os hosts NAO voltam a "healthy" na hora - "degraded" persiste ate 15 minutos (900s) apos o ultimo erro, e' a propria definicao do sistema (visivel no rodape do Monitor), nao um bug - a fala da secao 6.2 foi ajustada para explicar isso em vez de prometer retorno instantaneo;
+  (c) o dialogo "Open" do Rule Editor (UI nova, /ui/interop/rule-editor/) tem 3 niveis reais - Guardian -> Rule -> IncidentRoutingRule - e nao "Business Rules -> Rule -> IncidentRoutingRule" como a V3 tinha.
+Nota: a pasta entregaveis/Prompts ganhou 2 arquivos novos na mesma sessao (item 10 e 11, ver abaixo), entao P25 e a legenda do passo 8.1 dizem "12 arquivos", nao mais "10".
+
+FEITO 7.5) Bug real corrigido: Guardian.Monitor.StatusCollector::ErrorWindowSeconds estava em 900 (15 minutos) por um erro de unidade - o comentario do codigo dizia que devia ser "o mesmo valor do FailureTimeout" mas o FailureTimeout real da Production e' 15 SEGUNDOS (confirmado ao vivo), nao 15 minutos. Corrigido para 15. Testado ao vivo o ciclo completo (quebrar destino -> falha real -> corrigir -> tráfego novo): os 4 hosts agora voltam a healthy em ~15-20s, nao em ate 15 minutos. Reflexo no proprio rodape do Monitor: "degraded = pending queue or error in the last 15 seconds". Gerada V6 de 08_ROTEIRO_GRAVACAO_VIDEO com o texto da secao 6.2 e do glossario corrigidos (build: docs/planejamento/_v3_build/build_v6.js) e P21 recapturado mostrando os 4 hosts healthy de verdade.
+
+7.1 Pre-requisitos que dependem de mim (o Claude nao pode fazer):
+  - Fazer login (guardian / guardian) no navegador embutido do app Claude no Mac: primeiro no Guardian (http://localhost:53773/csp/guardian/Guardian.UI.MonitorPage.cls) e depois no Management Portal (http://localhost:53773/csp/sys/UtilHome.csp). O Claude nao digita senha.
+  - Rodar no Terminal do Mac os comandos de docker das secoes 2, 3 e 6 do roteiro, no momento em que o Claude avisar. O terminal que o Claude usa no Mac nao enxerga o Docker, entao ele nao consegue subir o loop, bloquear a pasta out_priority nem disparar INC-003 e INC-004.
+  - Mac ligado, sem repouso, com o app Claude aberto e a sessao ligada ao Mac.
+
+7.2 Prints a capturar (numeracao P01 a P25 do PDF; bolinha vermelha numerada em cada clique):
+  P01 mesa de gravacao (Terminal 1, Terminal 2, navegador) | P02 terminal com Estado: 1 | P03 botao de idioma EN na barra lateral
+  P04 Monitor inicial saudavel | P05 Monitor saudavel (State Running, 4 hosts healthy) | P06 Terminal 2 com o loop rodando
+  P07 Monitor com contadores subindo | P08 ls da pasta out | P09 Management Portal: Interoperability > View > Messages (bolinhas)
+  P10 Message Viewer com mensagens LOOP Completed | P11 terminal apos chmod 555 | P12 Monitor com 2 hosts amarelos (IncidentRouterProcess e PriorityOutputOperation) e 2 verdes
+  P13 Message Viewer com INC-003 em Error | P14 detalhe do erro #5005 | P15 Investigator com componente e janela 60
+  P16 overlay de carregamento | P17 resultado Observacao/Hipotese/Lacunas | P18 RAG Gemini com fonte citada
+  P19 RAG abstencao (bolo de chocolate) | P20 RAG Groq com fonte | P21 Monitor recuperado (4 healthy)
+  P22 Message Viewer com INC-003 e botao Resend | P23 Rule Editor vazio com botao Open | P24 dialogo Open (Business Rules > Rule > IncidentRoutingRule)
+  P25 pasta entregaveis/Prompts no Finder
+
+7.3 Pontos a verificar ao vivo no Management Portal:
+  - Confirmar os nomes exatos dos itens do menu Interoperability > Monitor (telas de volume/trafego de mensagens) e, se fizer sentido para o video, acrescentar um passo com print.
+  - Confirmar o caminho Interoperability > Configure > Production e o botao Resend do Message Viewer.
+
+7.4 Cuidados nos prints:
+  - Ocultar barra de favoritos do Chrome (o print antigo Imagens/Error/Producao.jpg vazou favoritos).
+  - Nao abrir Interoperability > Configure > Credentials (chaves de API).
+  - Interface em EN. Os prints antigos de entregaveis/manual_assets estao desatualizados (estado Com problema, menu "NOVO MODELO", idioma PT), por isso NAO foram reaproveitados.
+  - Refazer o print R1: no atual a Production aparece como Stopped; deve aparecer Running.
+
+ATUALIZACAO do item 7 (19/09/2026, mais tarde): a V3 foi regerada com prints de REFERENCIA anotados com bolinhas vermelhas (P05 Monitor, P15 Investigator, P17 resultado, P18 RAG Gemini, P20 RAG Groq e R3 abas do Interoperability), vindos de entregaveis/manual_assets e Imagens/Config (12/09). Sao de versao anterior da tela (idioma PT, estados antigos) e devem ser trocados por prints atuais. Continuam pendentes 20 prints: P01, P02, P03, P04, P06, P07, P08, P09, P10, P11, P12, P13, P14, P16, P19, P21, P22, P23, P24, P25. O gerador e as imagens anotadas ficam em docs/planejamento/_v3_build/ (build_v3.py, annotate.py); o gerador antigo esta em build_v3_prelim.py na mesma pasta.
+
+8 Tenho uma dúvida real, que pode ser uma falha no script de execução do arquivo 08_ROTEIRO_GRAVACAO_VIDEO_V5.pdf.
+Nos retiramos acesso de escrita na pasta com prioridade:
+docker exec -i iris-guardian chmod 555 /durable/guardian/out_priority
+
+O loop está enviando mensagens para a pasta /durable/guardian/out.
+
+Restauramos o acesso a pasta de prioridade no item 6.1 do V5.pdf
+docker exec -i iris-guardian chmod 755 /durable/guardian/out_priority
+
+E no item 6.2 do V5.pdf está instruindo a mostrar que tráfego passa mandando uma mensagem de baixa prioridade, ou seja, com as rules, será escrito na pasta out, e não out_priority. 
+docker exec -i iris-guardian sh -c 'F=/durable/guardian/in/demo4.txt; echo "INC-004|IRIS.Service.PaymentGateway|LOW|Fluxo normal apos recuperacao do destino" > $F && chown irisowner:irisowner $F'
+
+Neste ponto, não deveria mandar nova mensagem crítica para cair na pasta que tiramos acesso? Ou na veradade, deveriamos tirar a permissão de escrita da pasta /durable/guardian/out?
+
+FEITO 8) Voce esta certo, era um erro real do roteiro (nao da aplicacao). A pasta certa a bloquear/desbloquear sempre foi out_priority (quem recebe CRITICAL/HIGH/MEDIUM pela regra RouteBySeverity) - isso ja estava certo. O erro era a severidade do INC-004 no passo 6.2: estava LOW, que a regra nunca manda para out_priority (vai para out, que nunca foi bloqueada) - entao o teste nao provava nada sobre a correcao. Confirmado no codigo-fonte da regra (Guardian.Rule.IncidentRoutingRule: LOW nao bate em HIGH/CRITICAL/MEDIUM) e testado ao vivo duas vezes: com LOW, out_priority ficava vazia mesmo depois do chmod 755; com CRITICAL (mesma severidade do INC-003), o arquivo aparece de verdade em out_priority depois da correcao. Corrigido: passo 6.2 agora manda INC-004 com severidade CRITICAL, com um aviso "achado ao vivo" explicando o porque, mais um passo extra confirmando por ls que o arquivo caiu no destino certo. Tambem corrigido o paragrafo da secao 7.1 que dizia que INC-003 e INC-004 iam para "destinos diferentes" (agora vao para o mesmo destino - a diferenca e o estado da pasta, nao a decisao da regra). Gerada V7 de 08_ROTEIRO_GRAVACAO_VIDEO (build: docs/planejamento/_v3_build/build_v7.js), 35 paginas, zero pendencias.

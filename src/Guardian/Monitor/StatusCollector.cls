@@ -10,13 +10,18 @@ Class Guardian.Monitor.StatusCollector Extends %RegisteredObject
 /// namespace neste projeto).
 Parameter Production = "Guardian.Production.GuardianProduction";
 
-/// Janela de deteccao de erro recente, em segundos (15 min = mesmo valor
-/// do FailureTimeout padrao observado em Ens.BusinessOperation).
+/// Janela de deteccao de erro recente, em segundos. Igual ao valor real
+/// do FailureTimeout padrao de Ens.BusinessOperation (15s, confirmado ao
+/// vivo, nao presumido) - ate 19/09/2026 este parametro estava em 900
+/// (15 minutos), um bug de unidade: o comentario original pretendia
+/// "o mesmo valor do FailureTimeout" mas confundiu o numero 15 (segundos)
+/// com 15 minutos. Corrigido para bater com o tempo real que o framework
+/// usa para desistir de uma tentativa.
 /// Nome sem underscore de proposito: "..#NOME_COM_UNDERSCORE" quebra o
 /// parser do compilador (o "_" e o operador de concatenacao e interfere
 /// na resolucao da referencia ao parametro) - confirmado empiricamente
 /// durante o desenvolvimento desta classe.
-Parameter ErrorWindowSeconds = 900;
+Parameter ErrorWindowSeconds = 15;
 
 /// Quantas amostras consecutivas (incluindo a atual) precisam ter fila
 /// positiva e nao-decrescente para o host ser marcado como "travado" -

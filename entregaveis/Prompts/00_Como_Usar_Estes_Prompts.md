@@ -58,7 +58,15 @@ cada prompt abaixo, mesmo quando não repetidas por extenso:
 | 7 | `07_Bonus_API_Publica_PublicHealth.md` | Segunda Production consumindo API pública real |
 | 8 | `08_Bonus_Multimodelo_Groq.md` | Segundo provedor de IA (Groq) na geração |
 | 9 | `09_Fase5_Hardening_Instalacao_Testes.md` | Instalação limpa, testes formais, auditoria |
+| 10 | `10_Fase5b_UX_Loading_e_I18n.md` | Overhaul do indicador de carregamento e cobertura completa de i18n |
+| 11 | `11_Redesign_Sidebar_Persistente.md` | Barra lateral persistente com saúde da Production sempre visível (aplica-se depois dos itens 3-5) |
 
 Cada arquivo tem: o prompt pronto para colar num agente, o resultado real
 observado (o que foi corrigido, não o que se esperava), e o link para o
 documento de planejamento correspondente com a evidência datada completa.
+
+**Nota sobre escopo (19/09/2026):** esta pasta documenta a
+**aplicação** (o sistema COS/IRIS em si). Não inclui prompts para os
+deliverables de apresentação gerados depois (manuais PT/EN, roteiro de
+gravação do vídeo, artigo da comunidade) — esses são materiais de
+divulgação sobre o projeto, não passos para reconstruir o projeto.

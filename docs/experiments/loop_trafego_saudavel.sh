@@ -29,9 +29,9 @@ echo "Enviando uma mensagem LOW a cada ${INTERVAL}s para /durable/guardian/in (C
 while true; do
 	I=$((I + 1))
 	ID="LOOP-$(date +%H%M%S)-${I}"
-	FILE="loop_${I}.txt"
-	docker exec -i iris-guardian sh -c \
-		"echo '${ID}|IRIS.Service.OrderIngest|LOW|Trafego continuo de demonstracao #${I}' > /durable/guardian/in/${FILE} && chown irisowner:irisowner /durable/guardian/in/${FILE}"
+	FILE="/durable/guardian/in/loop_${I}.txt"
+	MSG="${ID}|IRIS.Service.OrderIngest|LOW|Trafego continuo de demonstracao #${I}"
+	docker exec -i iris-guardian sh -c "echo '$MSG' > $FILE && chown irisowner:irisowner $FILE"
 	echo "[$(date +%T)] enviado ${ID}"
 	sleep "$INTERVAL"
 done

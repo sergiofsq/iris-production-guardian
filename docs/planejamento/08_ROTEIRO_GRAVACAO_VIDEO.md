@@ -19,7 +19,7 @@ outra — confira com `docker port iris-guardian`):
 
 http://localhost:53773/csp/sys/UtilHome.csp
 
-
+http://localhost:53773/csp/guardian/Guardian.UI.MonitorPage.cls
 
 | Tela | URL |
 |---|---|
