@@ -192,6 +192,63 @@ ClassMethod IngestFile(pPath As %String, pSource As %String, pTitle As %String, 
 	Quit ..IngestDocument(pSource, pTitle, pVersion, tText)
 }
 
+/// Substitui, no lugar, o conteudo de um Document existente (mantem o
+/// Document.ID, que Guardian.RAG.Eval usa como resposta esperada): le
+/// pPath, gera os embeddings de TODOS os fragmentos novos em memoria e so
+/// entao troca Source/Title/Version e os fragmentos antigos - se qualquer
+/// embedding falhar (ex.: 429/503 do Gemini, ja com 3 tentativas), nada e
+/// alterado e o corpus continua integro. Retorna o numero de fragmentos.
+ClassMethod ReingestFile(pDocumentId As %Integer, pPath As %String, pSource As %String, pTitle As %String, pVersion As %String) As %Integer
+{
+	Set tFile = ##class(%Stream.FileCharacter).%New()
+	Set tFile.TranslateTable = "UTF8"
+	Set tSC = tFile.LinkToFile(pPath)
+	If $$$ISERR(tSC) {
+		Throw ##class(%Exception.StatusException).CreateFromStatus(tSC)
+	}
+	Set tText = tFile.Read(tFile.Size)
+
+	Set tChunks = ..SplitIntoChunks(tText)
+	Set tVecs = []
+	Set tIter = tChunks.%GetIterator()
+	While tIter.%GetNext(.tKey, .tChunkText) {
+		Set tVecStr = "", tTry = 0
+		While (tVecStr = "") && (tTry < 3) {
+			Set tTry = tTry + 1
+			Try {
+				Set tVecStr = ..VectorToString(##class(Guardian.RAG.GeminiClient).Embed(tChunkText))
+			} Catch ex {
+				If tTry >= 3 { Throw ex }
+				Hang 5
+			}
+		}
+		Do tVecs.%Push(tVecStr)
+	}
+
+	Set tNow = $ZDATETIME($Horolog, 3)
+	TSTART
+	Try {
+		&sql(DELETE FROM Guardian_RAG.Chunk WHERE DocumentId = :pDocumentId)
+		&sql(UPDATE Guardian_RAG.Document SET Source = :pSource, Title = :pTitle, Version = :pVersion, CollectedAt = :tNow WHERE ID = :pDocumentId)
+		Set tCount = 0
+		Set tIter = tChunks.%GetIterator()
+		While tIter.%GetNext(.tKey, .tChunkText) {
+			Set tInsStmt = ##class(%SQL.Statement).%New()
+			Do tInsStmt.%Prepare("INSERT INTO Guardian_RAG.Chunk (DocumentId, ChunkIndex, ChunkText, Embedding, EmbeddingModel, CreatedAt) VALUES (?,?,?,TO_VECTOR(?,DOUBLE),?,?)")
+			Set tInsRS = tInsStmt.%Execute(pDocumentId, tCount, tChunkText, tVecs.%Get(tCount), "gemini-embedding-001", $ZDATETIME($Horolog, 3))
+			If tInsRS.%SQLCODE < 0 {
+				Throw ##class(%Exception.General).%New("Falha ao inserir Chunk "_tCount_": "_tInsRS.%Message)
+			}
+			Set tCount = tCount + 1
+		}
+		TCOMMIT
+	} Catch ex2 {
+		TROLLBACK
+		Throw ex2
+	}
+	Quit tCount
+}
+
 /// Le pPath e ingere nas DUAS tabelas de comparacao (paragrafo e janela
 /// fixa), a partir do MESMO texto atual - garante que a comparacao seja
 /// justa (mesmo conteudo, so a estrategia de corte muda). Referencia um

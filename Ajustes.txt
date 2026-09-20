@@ -110,3 +110,16 @@ docker exec -i iris-guardian sh -c 'F=/durable/guardian/in/demo4.txt; echo "INC-
 Neste ponto, não deveria mandar nova mensagem crítica para cair na pasta que tiramos acesso? Ou na veradade, deveriamos tirar a permissão de escrita da pasta /durable/guardian/out?
 
 FEITO 8) Voce esta certo, era um erro real do roteiro (nao da aplicacao). A pasta certa a bloquear/desbloquear sempre foi out_priority (quem recebe CRITICAL/HIGH/MEDIUM pela regra RouteBySeverity) - isso ja estava certo. O erro era a severidade do INC-004 no passo 6.2: estava LOW, que a regra nunca manda para out_priority (vai para out, que nunca foi bloqueada) - entao o teste nao provava nada sobre a correcao. Confirmado no codigo-fonte da regra (Guardian.Rule.IncidentRoutingRule: LOW nao bate em HIGH/CRITICAL/MEDIUM) e testado ao vivo duas vezes: com LOW, out_priority ficava vazia mesmo depois do chmod 755; com CRITICAL (mesma severidade do INC-003), o arquivo aparece de verdade em out_priority depois da correcao. Corrigido: passo 6.2 agora manda INC-004 com severidade CRITICAL, com um aviso "achado ao vivo" explicando o porque, mais um passo extra confirmando por ls que o arquivo caiu no destino certo. Tambem corrigido o paragrafo da secao 7.1 que dizia que INC-003 e INC-004 iam para "destinos diferentes" (agora vao para o mesmo destino - a diferenca e o estado da pasta, nao a decisao da regra). Gerada V7 de 08_ROTEIRO_GRAVACAO_VIDEO (build: docs/planejamento/_v3_build/build_v7.js), 35 paginas, zero pendencias.
+
+FEITO 9) 
+Vou criar um projeto bem similar a este porém o input será a integração com API relacionada à saúde que contenha os dados do covid.
+
+ preciso que você crie um documento de definição completo com tudo o que o outro projeto precisar para criar esta produção
+
+ ao final Eu espero na nossa página do Guardian poder escolher qual produção eu quero monitorar Então seria interessante Se existisse um campo do tipo Option para que eu escolhesse entre as duas Produções para realizar o procedimento.
+
+ você precisa criar quase tudo no nosso dockers Eu Já criei eu nem Space e a base de dados também Já criei o diretório Dentro da pasta projetos porém só tem uma pasta imagens lá dentro que você pode inclusive substituir.
+
+ então não altere o nosso projeto do Guardião em hipótese nenhuma apenas crie o novo projeto com o mesmo nome AIDS production Guardian covid no final com esta integração de api consumimos dados de convid 
+
+Resolvido em 20/09/2026 na pasta "IRIS Production Guardian COVID" (projeto original nao alterado): Production que reproduz o historico real de COVID-19, decide a providencia por pais, seletor de producao no Monitor e painel Mapa mundi. Definicao completa: docs/planejamento/09_DEFINICAO_PROJETO_COVID.md daquela pasta.
