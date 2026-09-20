@@ -29,7 +29,17 @@ ClassMethod Investigate(pComponent As %String, pWindowMinutes As %Integer = 30, 
 	Set tPrompt = ..BuildPrompt(tEvidence, pLang)
 
 	Try {
-		Set tAnswerText = ##class(Guardian.RAG.GeminiClient).Generate(tPrompt)
+		Try {
+			Set tAnswerText = ##class(Guardian.RAG.GeminiClient).Generate(tPrompt)
+			Set tResult.provider = "gemini"
+		} Catch exGemini {
+			// Fallback automatico: se o Gemini falhar (ex.: HTTP 503 por alta
+			// demanda), tenta o Groq com o mesmo prompt. Se o Groq tambem
+			// falhar, a excecao propaga para o Catch externo (evidencia ainda
+			// e retornada).
+			Set tAnswerText = ##class(Guardian.RAG.GroqClient).Generate(tPrompt)
+			Set tResult.provider = "groq"
+		}
 		Set tResult.modelAvailable = 1
 		Set tResult.analysis = tAnswerText
 	} Catch ex {
