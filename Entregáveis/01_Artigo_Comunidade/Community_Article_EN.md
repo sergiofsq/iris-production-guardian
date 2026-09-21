@@ -1,7 +1,7 @@
 <!--
 DRAFT — to be published on the InterSystems Developer Community (PT community).
 English translation of Artigo_Comunidade_PT.md.
-Fill in before publishing: [LINK_APLICACAO_OPEN_EXCHANGE], [LINK_VIDEO], [LINK_PERFIL_DC],
+Fill in before publishing: [IRIS Production Guardian on Open Exchange](https://openexchange.intersystems.com/package/IRIS-Production-Guardian), (video already filled in), [@Sergio.Fernandes](https://pt.community.intersystems.com/user/sergio-fernandes),
 real screenshots (today there is only a textual reference to the screens).
 Mandatory contest tags: #Concurso #ConcursoProgramacaoIA #AIProgramContest
 -->
@@ -9,8 +9,8 @@ Mandatory contest tags: #Concurso #ConcursoProgramacaoIA #AIProgramContest
 # IRIS Production Guardian: building an AI observability copilot for IRIS — and documenting every fix along the way
 
 *Submission for the InterSystems PT Developer Community Programming Contest 2026.*
-*Author (solo development, no team): Sérgio Fernandes de Sousa Quinta — [LINK_PERFIL_DC]*
-*Application: [LINK_APLICACAO_OPEN_EXCHANGE] · Repository: [github.com/sergiofsq/iris-production-guardian](https://github.com/sergiofsq/iris-production-guardian) · Video: [LINK_VIDEO]*
+*Author (solo development, no team): Sérgio Fernandes de Sousa Quinta — [@Sergio.Fernandes](https://pt.community.intersystems.com/user/sergio-fernandes)*
+*Application: [IRIS Production Guardian on Open Exchange](https://openexchange.intersystems.com/package/IRIS-Production-Guardian) · Repository: [github.com/sergiofsq/iris-production-guardian](https://github.com/sergiofsq/iris-production-guardian) · Video: [YouTube](https://youtu.be/dDCw5pywdH8)*
 
 ## The problem
 
@@ -65,7 +65,7 @@ provider, Groq, genuinely wired into the RAG generation step) — are
 implemented and tested live. The complete technical documentation, with
 dated evidence for each item, is in
 [`docs/planejamento/07_SCORECARD_EVIDENCIAS.md`](https://github.com/sergiofsq/iris-production-guardian/blob/main/docs/planejamento/07_SCORECARD_EVIDENCIAS.md)
-and in the [complete project documentation](https://github.com/sergiofsq/iris-production-guardian/blob/main/entregaveis)
+and in the [complete project documentation](https://github.com/sergiofsq/iris-production-guardian/tree/main/Entreg%C3%A1veis/02_Documentacao)
 (PT/EN, in PDF).
 
 One decision worth highlighting: when the "multi-model" bonus came up, the
@@ -94,7 +94,7 @@ The real sequence of prompts that reproduces this application — the prompt
 that actually started the project in Phase 0, reproduced verbatim, and the
 others reconstructed by reverse engineering from the code and the commits
 where the original text was not preserved — is published in
-[`entregaveis/Prompts/`](https://github.com/sergiofsq/iris-production-guardian/tree/main/entregaveis/Prompts),
+[`Entregáveis/03_Prompts/`](https://github.com/sergiofsq/iris-production-guardian/tree/main/Entreg%C3%A1veis/03_Prompts),
 one file per phase/bonus. Each one pairs the prompt with the real errors
 found at that stage — not an idealized version of the process.
 
@@ -166,7 +166,7 @@ problem.
 
 More examples, with the exact prompt and the real result of each phase,
 are in
-[`entregaveis/Prompts/`](https://github.com/sergiofsq/iris-production-guardian/tree/main/entregaveis/Prompts).
+[`Entregáveis/03_Prompts/`](https://github.com/sergiofsq/iris-production-guardian/tree/main/Entreg%C3%A1veis/03_Prompts).
 
 ## Formal tests — the four required paths
 
