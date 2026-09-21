@@ -8,3 +8,8 @@ node_modules/
 # of the delivery/publication, see docs/planejamento/00_MASTER_PLAN.md §7
 pessoal/
 Imagens/Error/
+
+# Large video files (above GitHub 100 MB file limit / kept out of the repo)
+VIDEO/
+Entregáveis/_Arquivo_Versoes_Antigas/Video/oldUnificado_V2.mov
+Entregáveis/_Arquivo_Versoes_Antigas/Video/oldUnificado_V2_EN_Subtitled.mp4
