@@ -1,7 +1,7 @@
 <!--
 DRAFT — to be published on the InterSystems Developer Community (PT community).
 English translation of Artigo_Comunidade_PT.md.
-Fill in before publishing: [LINK_APLICACAO_OPEN_EXCHANGE], [LINK_VIDEO],
+Fill in before publishing: [LINK_APLICACAO_OPEN_EXCHANGE], [LINK_VIDEO], [LINK_PERFIL_DC],
 real screenshots (today there is only a textual reference to the screens).
 Mandatory contest tags: #Concurso #ConcursoProgramacaoIA #AIProgramContest
 -->
@@ -9,6 +9,7 @@ Mandatory contest tags: #Concurso #ConcursoProgramacaoIA #AIProgramContest
 # IRIS Production Guardian: building an AI observability copilot for IRIS — and documenting every fix along the way
 
 *Submission for the InterSystems PT Developer Community Programming Contest 2026.*
+*Author (solo development, no team): Sérgio Fernandes de Sousa Quinta — [LINK_PERFIL_DC]*
 *Application: [LINK_APLICACAO_OPEN_EXCHANGE] · Repository: [github.com/sergiofsq/iris-production-guardian](https://github.com/sergiofsq/iris-production-guardian) · Video: [LINK_VIDEO]*
 
 ## The problem

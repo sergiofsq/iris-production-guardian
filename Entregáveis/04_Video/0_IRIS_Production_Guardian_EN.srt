@@ -1,0 +1,595 @@
+1
+00:00:01,062 --> 00:00:06,387
+Hello everyone, I'm Sérgio Fernandes, and
+this is our project, IRIS Production
+
+2
+00:00:06,387 --> 00:00:11,848
+Guardian. It is an application built
+entirely on the InterSystems IRIS platform.
+
+3
+00:00:11,848 --> 00:00:17,445
+It aims to solve a real problem: when an
+integration environment fails and someone
+
+4
+00:00:17,445 --> 00:00:23,247
+needs to understand what happened as quickly
+as possible. You can't rely on a generic
+
+5
+00:00:23,247 --> 00:00:28,572
+answer. Our application is made up of three
+modules. The first is the Monitor,
+
+6
+00:00:28,646 --> 00:00:36,202
+which is real-time monitoring of the state
+of each Production. The second is the AI
+
+7
+00:00:36,202 --> 00:00:43,758
+Incident Investigator: when a component
+fails, we select that component, and within
+
+8
+00:00:43,758 --> 00:00:51,678
+a time window it analyzes real failure data
+and shows a structured investigation, where
+
+9
+00:00:51,678 --> 00:00:56,412
+you can see the most likely hypothesis for
+the cause
+
+10
+00:00:56,486 --> 00:01:03,918
+and what cannot be stated with certainty.
+But it never fixes anything on its own; it
+
+11
+00:01:03,918 --> 00:01:11,527
+always depends on a human action. The third
+is the RAG Assistant. It answers questions
+
+12
+00:01:11,527 --> 00:01:19,312
+about the project's own documentation. So we
+can ask this Assistant any kind of question
+
+13
+00:01:19,312 --> 00:01:25,948
+and it can only answer within the scope of
+the project, nothing outside it.
+
+14
+00:01:26,022 --> 00:01:34,130
+We even created two versions of the query,
+one with Gemini and another with Groq. Shall
+
+15
+00:01:34,130 --> 00:01:42,144
+we go to the application? Here we are with
+our Production, and what we are going to do
+
+16
+00:01:42,144 --> 00:01:49,972
+is simulate an interoperability transfer, an
+integration transfer. The file comes in
+
+17
+00:01:49,972 --> 00:01:51,836
+through the service,
+
+18
+00:01:51,910 --> 00:01:55,628
+it is processed here in
+
+19
+00:01:56,166 --> 00:02:03,864
+this processing host, and then it goes to
+the operation. Here we have a rule: if the
+
+20
+00:02:03,864 --> 00:02:11,745
+message has low priority, it comes here to
+the File Output, but if it has high, medium
+
+21
+00:02:11,745 --> 00:02:19,626
+or critical priority, then it goes here to
+the priority output. So this is the rule we
+
+22
+00:02:19,626 --> 00:02:21,276
+created inside the
+
+23
+00:02:21,350 --> 00:02:29,098
+IRIS interoperability application itself. So
+here we have the severity: high, critical
+
+24
+00:02:29,098 --> 00:02:36,396
+and medium. Those end up here in the
+Priority Output. And anything different from
+
+25
+00:02:36,396 --> 00:02:43,694
+that ends up in the Output. So the first
+thing we are going to do is bring up our
+
+26
+00:02:43,694 --> 00:02:45,676
+application, start it.
+
+27
+00:02:46,630 --> 00:02:54,141
+And here we have our Production active,
+refreshing every 10 seconds. So the
+
+28
+00:02:54,141 --> 00:03:02,153
+Production is active. Next step: we are
+going to create traffic every 10 seconds
+
+29
+00:03:02,153 --> 00:03:10,566
+with normal priority. So at this moment
+there are files here in the File Output, and
+
+30
+00:03:10,566 --> 00:03:11,868
+we can follow
+
+31
+00:03:11,942 --> 00:03:16,588
+how the output folders are doing.
+
+32
+00:03:17,094 --> 00:03:19,020
+So, first of all...
+
+33
+00:03:22,726 --> 00:03:28,940
+the output folder without priority already
+has two files, now three,
+
+34
+00:03:30,246 --> 00:03:33,260
+and the priority one is empty.
+
+35
+00:03:35,494 --> 00:03:38,220
+What we are going to do now is
+
+36
+00:03:39,366 --> 00:03:45,292
+send a high-criticality message.
+
+37
+00:03:49,254 --> 00:03:54,060
+So when we send it there with the critical
+type,
+
+38
+00:03:54,726 --> 00:03:55,820
+it goes
+
+39
+00:03:57,254 --> 00:04:01,324
+in our application to the Priority.
+
+40
+00:04:02,150 --> 00:04:05,452
+So if we take a look at the folder now,
+
+41
+00:04:06,022 --> 00:04:10,380
+there is a file in there, which is our
+INC-003.
+
+42
+00:04:14,022 --> 00:04:21,366
+Now the next step is to simulate the error,
+so what we are going to do is remove the
+
+43
+00:04:21,366 --> 00:04:25,388
+folder permission, simulating a server
+outage.
+
+44
+00:04:28,454 --> 00:04:30,796
+So we take the folder down.
+
+45
+00:04:31,270 --> 00:04:35,372
+and try to send a message to it again.
+
+46
+00:04:40,806 --> 00:04:49,930
+Note that our processing host and also our
+Priority Output will become degraded. Let me
+
+47
+00:04:49,930 --> 00:04:52,972
+just change the message name.
+
+48
+00:04:53,670 --> 00:04:57,516
+because that message already exists in 03/0
+
+49
+00:05:10,822 --> 00:05:18,741
+The messages keep piling up, because it has
+now detected that this destination is not
+
+50
+00:05:18,741 --> 00:05:26,660
+up, it went down, and this is where the AI
+investigation effectively begins. So if we
+
+51
+00:05:26,660 --> 00:05:29,548
+now come to the Investigator...
+
+52
+00:05:31,366 --> 00:05:38,092
+We ask it to run an analysis, for example,
+of the last five minutes of our operation.
+
+53
+00:05:39,270 --> 00:05:47,796
+So it will collect the evidence, create an
+analysis with the AI and bring us the
+
+54
+00:05:47,796 --> 00:05:56,855
+problems. It reported a timeout exceeded
+failure, which is exactly the write attempt.
+
+55
+00:05:56,855 --> 00:06:04,316
+And here it gives the possible errors. So
+there is the summary section
+
+56
+00:06:04,806 --> 00:06:12,728
+where it explains what the component's
+problem is. It said there was a failure
+
+57
+00:06:12,728 --> 00:06:21,563
+longer than 15 seconds to write the INC-004
+file that we placed in the priority folder.
+
+58
+00:06:21,563 --> 00:06:30,297
+In the observations, it tells us what the
+current health is and what the event was, so
+
+59
+00:06:30,297 --> 00:06:31,516
+this one had
+
+60
+00:06:31,654 --> 00:06:40,872
+an error, this other one was a success, so
+it has all of its observations regarding the
+
+61
+00:06:40,872 --> 00:06:49,772
+latest events of the last five minutes,
+okay? So it reported here "cannot open file"
+
+62
+00:06:53,958 --> 00:06:56,204
+And then it tells us where
+
+63
+00:06:56,806 --> 00:06:59,532
+the error is loaded.
+
+64
+00:07:01,478 --> 00:07:10,151
+What are the hypotheses for this error?
+First, it says here that it cannot write,
+
+65
+00:07:10,151 --> 00:07:18,931
+the destination is not accessible, this
+Priority Output. So it understands that it
+
+66
+00:07:18,931 --> 00:07:26,748
+may be, for example, that it is just read-
+only. Its second hypothesis...
+
+67
+00:07:26,822 --> 00:07:29,260
+and
+
+68
+00:07:31,750 --> 00:07:34,924
+unprocessed messages.
+
+69
+00:07:35,974 --> 00:07:44,708
+So it is putting forward a hypothesis that
+it could not write because of unprocessed
+
+70
+00:07:44,708 --> 00:07:45,644
+messages.
+
+71
+00:07:48,518 --> 00:07:50,988
+The third one is...
+
+72
+00:07:51,686 --> 00:08:00,566
+that the path is bad, right? So the path is
+not correct. For example, if we switched the
+
+73
+00:08:00,566 --> 00:08:09,546
+path to the Alt, it knows the Alt is up. The
+Alt Priority is not. It knows that. So if we
+
+74
+00:08:09,546 --> 00:08:14,188
+switched to this path here, it could solve
+it.
+
+75
+00:08:15,206 --> 00:08:21,740
+And also, automatic recovery cannot be
+triggered.
+
+76
+00:08:23,014 --> 00:08:31,803
+So it says here that the permissions must be
+fixed so that the incidents are resolved.
+
+77
+00:08:31,803 --> 00:08:40,695
+What can it not state? The gaps section. It
+needs to confirm the hypotheses. So it asks
+
+78
+00:08:40,695 --> 00:08:49,382
+us to check the components, the component
+states. It also asks to check the priority,
+
+79
+00:08:49,382 --> 00:08:51,324
+the priority paths.
+
+80
+00:08:51,398 --> 00:09:00,573
+It also asks us to look at the non-priority
+outputs, since it could be an isolated
+
+81
+00:09:00,573 --> 00:09:10,195
+problem with the priority path. There are
+manual interventions and configurations that
+
+82
+00:09:10,195 --> 00:09:17,020
+it asks us to review. In fact, it could not
+check all of this
+
+83
+00:09:17,094 --> 00:09:24,529
+because of a permission failure, or whatever
+the reason, and so it lists this under gaps,
+
+84
+00:09:24,529 --> 00:09:31,714
+what it did not verify. And here it comes
+with the suggested next steps, what to do to
+
+85
+00:09:31,714 --> 00:09:38,647
+solve it. The first one, in fact, is already
+the error we simulated, we removed the
+
+86
+00:09:38,647 --> 00:09:42,908
+folder permission, but it also gives other
+details.
+
+87
+00:09:42,982 --> 00:09:51,316
+Check logs, check pending messages, it even
+created a query for us. So notice that the
+
+88
+00:09:51,316 --> 00:09:59,553
+AI brings us suggestions of what to do; it
+does not do it automatically, but the gain
+
+89
+00:09:59,553 --> 00:10:07,209
+for someone in support, for example, is
+enormous, because you have a ready-made
+
+90
+00:10:07,209 --> 00:10:09,244
+analysis in real time
+
+91
+00:10:09,318 --> 00:10:17,542
+of your running operation, and you can
+simply follow the step-by-step to solve the
+
+92
+00:10:17,542 --> 00:10:25,465
+problem concretely, okay? There is also a
+documentation section showing what it
+
+93
+00:10:25,465 --> 00:10:33,991
+consulted. This is part of the software we
+built. And now we go to the RAG Assistant,
+
+94
+00:10:33,991 --> 00:10:34,492
+okay?
+
+95
+00:10:34,566 --> 00:10:40,828
+So here I will not ask that question,
+because that question is exactly the answer
+
+96
+00:10:40,828 --> 00:10:47,168
+already in the Investigator, but we can do
+it here. Let's take a look at the error
+
+97
+00:10:47,168 --> 00:10:50,028
+number, for example, from the message
+
+98
+00:10:51,302 --> 00:10:54,988
+let me search here for the message that has
+the error, this one,
+
+99
+00:10:55,622 --> 00:11:06,380
+whether we can display error 5005 here,
+okay? So let's ask it what error 5005 is.
+
+100
+00:11:07,110 --> 00:11:09,068
+"Jewel"
+
+101
+00:11:11,526 --> 00:11:13,100
+5005
+
+102
+00:11:15,334 --> 00:11:20,172
+Now our RAG answers us.
+
+103
+00:11:33,286 --> 00:11:34,156
+okay
+
+104
+00:11:37,030 --> 00:11:42,796
+It tells us what the error is, it says here
+that it is a timeout,
+
+105
+00:11:47,910 --> 00:11:50,284
+and gives us all the detail
+
+106
+00:11:51,334 --> 00:11:56,812
+and what it is consulting in our
+documentation file. Alright?
+
+107
+00:11:57,542 --> 00:12:06,436
+Okay? So what we are going to do now is
+grant the permission again and send the
+
+108
+00:12:06,436 --> 00:12:08,012
+message. Okay?
+
+109
+00:12:13,862 --> 00:12:16,300
+So we set it again.
+
+110
+00:12:17,766 --> 00:12:21,676
+755 on the Priority Output folder
+
+111
+00:12:24,774 --> 00:12:26,860
+and send
+
+112
+00:12:27,622 --> 00:12:29,740
+the message again.
+
+113
+00:12:30,310 --> 00:12:34,316
+Now we are going to change its number to
+number 5.
+
+114
+00:12:41,510 --> 00:12:49,050
+There it is, we can already see that
+communication has been restored. If we
+
+115
+00:12:49,050 --> 00:12:51,564
+follow the messages here,
+
+116
+00:12:52,774 --> 00:12:59,180
+it was completed. That error message stays
+indicated there,
+
+117
+00:12:59,782 --> 00:13:01,484
+its error,
+
+118
+00:13:06,758 --> 00:13:11,468
+which we can even resend. Now the service is
+up.
+
+119
+00:13:12,134 --> 00:13:14,316
+there will be no more problem.
+
+120
+00:13:20,486 --> 00:13:28,256
+So notice that the first time it hit an
+error, 5005, and then recovered, okay? Well
+
+121
+00:13:28,256 --> 00:13:35,838
+folks, this is our Production Guardian
+application. It is made up of the Monitor,
+
+122
+00:13:35,838 --> 00:13:43,608
+which follows in real time the messages
+passing through, with a 10-second delay, so
+
+123
+00:13:43,608 --> 00:13:45,948
+it has already refreshed,
+
+124
+00:13:46,022 --> 00:13:55,918
+the Investigator, which brings us the
+summary, observations, hypotheses, gaps and
+
+125
+00:13:55,918 --> 00:14:06,181
+suggested next steps, okay? And two RAGs so
+that we can ask questions related to the
+
+126
+00:14:06,181 --> 00:14:11,068
+project. If we ask another question here
+
+127
+00:14:29,286 --> 00:14:37,577
+it does not answer, it is outside the
+context of our Production. So folks, thank
+
+128
+00:14:37,577 --> 00:14:45,868
+you for watching our Production Guardian
+project, see you next time, a hug, bye!

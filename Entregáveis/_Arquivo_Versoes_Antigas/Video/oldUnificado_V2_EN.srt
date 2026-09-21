@@ -1,0 +1,678 @@
+1
+00:00:01,062 --> 00:00:05,253
+Hello everyone, I'm Sérgio Fernandes, and
+this is our project,
+
+2
+00:00:05,253 --> 00:00:06,943
+IRIS Production Guardian.
+
+3
+00:00:06,943 --> 00:00:12,147
+It is an application built entirely on top
+of the InterSystems IRIS platform.
+
+4
+00:00:12,147 --> 00:00:14,310
+It aims to solve a real problem:
+
+5
+00:00:14,310 --> 00:00:19,920
+when an integration environment fails and
+someone needs to understand what happened
+
+6
+00:00:19,920 --> 00:00:21,475
+as quickly as possible.
+
+7
+00:00:21,475 --> 00:00:26,882
+You can't rely on a generic answer. Our
+application is made up of three modules.
+
+8
+00:00:26,882 --> 00:00:28,572
+The first is the Monitor,
+
+9
+00:00:28,646 --> 00:00:34,384
+which is real-time monitoring of the state
+of each Production.
+
+10
+00:00:34,384 --> 00:00:40,585
+The second is the AI Incident
+Investigator: when a component fails,
+
+11
+00:00:40,585 --> 00:00:42,899
+we select that component,
+
+12
+00:00:42,899 --> 00:00:50,026
+and within a time window it analyzes real
+failure data and shows a structured
+
+13
+00:00:50,026 --> 00:00:51,272
+investigation,
+
+14
+00:00:51,322 --> 00:00:56,412
+so you can see the most likely hypothesis
+for the cause
+
+15
+00:00:56,486 --> 00:01:03,383
+and what cannot be stated with certainty.
+But it never fixes anything on its own;
+
+16
+00:01:03,383 --> 00:01:09,514
+it always depends on a human action. And
+the third is the RAG Assistant.
+
+17
+00:01:09,514 --> 00:01:14,538
+It answers questions about the project's
+own documentation.
+
+18
+00:01:14,538 --> 00:01:18,795
+So we can ask this Assistant any kind of
+question,
+
+19
+00:01:18,795 --> 00:01:25,948
+and it can only answer within the scope of
+the project, nothing outside the project.
+
+20
+00:01:26,022 --> 00:01:33,099
+We even created two versions of the query,
+one with Gemini and one with Groq.
+
+21
+00:01:33,099 --> 00:01:35,948
+Shall we go to the application?
+
+22
+00:01:39,014 --> 00:01:47,198
+Hello everyone, so here we are looking at
+our Production, where we have the Service,
+
+23
+00:01:47,198 --> 00:01:54,506
+Process and Operations, with the rule that
+if the message is high priority,
+
+24
+00:01:54,506 --> 00:02:01,034
+it must land in this Priority Operation,
+and if it is low priority,
+
+25
+00:02:01,034 --> 00:02:04,444
+it lands in this File Output, okay?
+
+26
+00:02:04,518 --> 00:02:08,318
+So this is the rule. We created a rule,
+
+27
+00:02:08,318 --> 00:02:14,748
+and we can see that if the expression is
+High, Critical or Medium,
+
+28
+00:02:14,748 --> 00:02:21,569
+it goes to the Priority Output; otherwise,
+it goes to the File Output.
+
+29
+00:02:21,569 --> 00:02:25,953
+Here is our application, Production
+Guardian.
+
+30
+00:02:25,953 --> 00:02:29,948
+At this moment the Production is stopped,
+
+31
+00:02:30,022 --> 00:02:32,972
+so we are going to start it here.
+
+32
+00:02:33,958 --> 00:02:35,372
+And then...
+
+33
+00:02:36,614 --> 00:02:39,084
+we can watch the Monitor here.
+
+34
+00:02:39,878 --> 00:02:43,936
+Within a few seconds, it refreshes every
+10 seconds,
+
+35
+00:02:43,936 --> 00:02:46,980
+it will bring our Production up. There,
+
+36
+00:02:46,980 --> 00:02:51,350
+now we have a monitor of everything
+happening right now.
+
+37
+00:02:51,350 --> 00:02:57,282
+The idea is to create a loop that sends
+messages and then watch the traffic,
+
+38
+00:02:57,282 --> 00:03:01,886
+and that is when we start working with our
+Guardian. First,
+
+39
+00:03:01,886 --> 00:03:07,271
+I'll show that the output folders are
+empty; nothing has arrived yet,
+
+40
+00:03:07,271 --> 00:03:08,988
+nothing has been sent.
+
+41
+00:03:09,062 --> 00:03:16,058
+So if we check this folder, which
+corresponds to the File Output Operation,
+
+42
+00:03:16,058 --> 00:03:17,644
+there is nothing.
+
+43
+00:03:20,070 --> 00:03:22,508
+And the priority one is empty too.
+
+44
+00:03:23,750 --> 00:03:29,612
+So we start with a loop of regular
+messages
+
+45
+00:03:33,094 --> 00:03:34,764
+from this moment on.
+
+46
+00:03:36,838 --> 00:03:42,892
+We can search and confirm that the
+messages are passing through the system,
+
+47
+00:03:42,892 --> 00:03:44,748
+through the Production.
+
+48
+00:03:45,862 --> 00:03:51,436
+If we check the regular output folder,
+there are files there,
+
+49
+00:03:52,166 --> 00:03:54,220
+and in the priority one, there are not.
+
+50
+00:03:56,102 --> 00:03:57,502
+So...
+
+51
+00:03:58,214 --> 00:04:00,908
+we can now send a
+
+52
+00:04:01,926 --> 00:04:04,844
+high-priority message.
+
+53
+00:04:08,358 --> 00:04:10,444
+We can also observe that
+
+54
+00:04:11,494 --> 00:04:16,858
+it arrived in the high-priority one. So
+our Monitor is working,
+
+55
+00:04:16,858 --> 00:04:22,136
+it keeps counting the messages, it
+refreshes every 10 seconds,
+
+56
+00:04:22,136 --> 00:04:27,755
+and now comes our project: creating a real
+unavailability problem,
+
+57
+00:04:27,755 --> 00:04:32,608
+having the AI analyze it for us through
+the Investigator,
+
+58
+00:04:32,608 --> 00:04:39,164
+and then being able to interact with it in
+these two models, Gemini and Groq,
+
+59
+00:04:39,238 --> 00:04:42,257
+asking questions for it to answer.
+
+60
+00:04:42,257 --> 00:04:49,451
+So the first thing I'm going to do is create a
+block on the high-priority folder,
+
+61
+00:04:49,451 --> 00:04:52,204
+so I'll change the permissions,
+
+62
+00:04:56,422 --> 00:04:58,092
+changing them
+
+63
+00:04:59,590 --> 00:05:01,420
+to non-writable.
+
+64
+00:05:03,142 --> 00:05:07,116
+I'll try to send another message
+
+65
+00:05:07,654 --> 00:05:09,054
+to it.
+
+66
+00:05:11,238 --> 00:05:17,932
+I'll just change the message name; it was
+003, I'll switch it to 4.
+
+67
+00:05:20,870 --> 00:05:23,820
+We'll see that as soon as it refreshes,
+
+68
+00:05:24,614 --> 00:05:28,629
+the Process status will appear here as
+degraded,
+
+69
+00:05:28,629 --> 00:05:32,812
+and the Priority Output Operation as
+degraded too.
+
+70
+00:05:37,254 --> 00:05:39,532
+So that's where we are.
+
+71
+00:05:40,774 --> 00:05:42,174
+However,
+
+72
+00:05:42,630 --> 00:05:51,004
+we keep sending, in a loop, a message every 60
+seconds to the File Output Operation.
+
+73
+00:05:51,004 --> 00:05:54,792
+So when the next message goes through,
+
+74
+00:05:54,792 --> 00:06:00,973
+that processing host is expected to return
+to a healthy state,
+
+75
+00:06:00,973 --> 00:06:05,260
+while the Guardian Priority stays
+degraded.
+
+76
+00:06:06,086 --> 00:06:07,884
+Here in the Investigator,
+
+77
+00:06:09,126 --> 00:06:11,084
+if we look at it,
+
+78
+00:06:11,846 --> 00:06:17,501
+we can run an analysis; I can have the AI
+run an analysis for us.
+
+79
+00:06:17,501 --> 00:06:21,068
+I'll ask here for the last three minutes.
+
+80
+00:06:27,718 --> 00:06:31,089
+We improved the interface a little,
+
+81
+00:06:31,089 --> 00:06:38,409
+so now we have this loader here while
+waiting for the AI to respond with the
+
+82
+00:06:38,409 --> 00:06:39,809
+analysis.
+
+83
+00:06:41,606 --> 00:06:46,642
+It says here that there was an error, a
+timeout failure,
+
+84
+00:06:46,642 --> 00:06:53,567
+and here it gives a summary saying that it
+is degraded and what is happening.
+
+85
+00:06:53,567 --> 00:07:00,492
+All of this is what the AI did for us.
+Here it says what the error was, 5005.
+
+86
+00:07:01,190 --> 00:07:07,595
+It says here which incident it is, which
+is this text file number 4.
+
+87
+00:07:07,595 --> 00:07:11,834
+The observations are the items that
+happened,
+
+88
+00:07:11,834 --> 00:07:15,884
+what it managed to look up about the
+error.
+
+89
+00:07:16,742 --> 00:07:20,503
+It says what the hypotheses for the
+problem are,
+
+90
+00:07:20,503 --> 00:07:25,595
+so it always depends on a human action to
+carry out the solution.
+
+91
+00:07:25,595 --> 00:07:31,001
+It does the whole analysis and delivers
+everything ready to be fixed,
+
+92
+00:07:31,001 --> 00:07:33,900
+but it does not fix it automatically.
+
+93
+00:07:36,198 --> 00:07:42,796
+And here it says what problems it faced in
+building a more elaborate hypothesis.
+
+94
+00:07:42,796 --> 00:07:43,736
+For example,
+
+95
+00:07:43,786 --> 00:07:50,137
+there is no direct confirmation in the log
+of why the operating system denied
+
+96
+00:07:50,137 --> 00:07:51,539
+opening the file,
+
+97
+00:07:51,539 --> 00:07:56,735
+whether it was lack of permission or
+something like disk space.
+
+98
+00:07:56,735 --> 00:08:01,436
+So when it can't determine something with
+full certainty,
+
+99
+00:08:01,510 --> 00:08:05,799
+it says so here in the gaps, which gap it
+found.
+
+100
+00:08:05,799 --> 00:08:12,948
+And it gives the next step on how to solve
+the problem. So for the support team,
+
+101
+00:08:12,948 --> 00:08:18,220
+for example, which is called in when there
+is a production,
+
+102
+00:08:18,220 --> 00:08:25,458
+integration or interoperability problem,
+our project gives them a more assertive,
+
+103
+00:08:25,458 --> 00:08:31,356
+faster answer, straight to the point,
+about what needs to be done.
+
+104
+00:08:31,430 --> 00:08:36,492
+There is documentation related to what it
+consulted.
+
+105
+00:08:37,478 --> 00:08:45,804
+Here in these RAG Assistants, we can ask,
+for example, what this error is.
+
+106
+00:09:00,966 --> 00:09:07,758
+And then it gives the meaning and the
+step-by-step order of execution:
+
+107
+00:09:07,758 --> 00:09:15,326
+check the directory, confirm the permission. It
+always stays within our scope.
+
+108
+00:09:15,326 --> 00:09:22,700
+It gives a summary of corrective actions,
+all of this done by the AI for us.
+
+109
+00:09:23,622 --> 00:09:26,476
+If I ask here, for example,
+
+110
+00:09:38,310 --> 00:09:46,188
+it cannot answer because it is outside our
+scope. Here we have the English version,
+
+111
+00:09:47,974 --> 00:09:49,374
+okay,
+
+112
+00:09:49,702 --> 00:09:53,260
+and we also have light mode and dark mode.
+
+113
+00:09:53,958 --> 00:09:58,156
+So now let's restore it and try sending
+again.
+
+114
+00:10:07,270 --> 00:10:11,532
+Before restoring, take a look at our
+messages.
+
+115
+00:10:12,550 --> 00:10:17,164
+So we have the low-priority ones arriving
+at the destination,
+
+116
+00:10:17,958 --> 00:10:20,204
+and the high-priority one,
+
+117
+00:10:21,062 --> 00:10:30,508
+with the indication there of that timeout
+error, error 5005, okay?
+
+118
+00:10:33,030 --> 00:10:36,940
+So what we need to do is follow
+
+119
+00:10:38,150 --> 00:10:43,982
+what the Monitor did, what the
+Investigator and the RAG suggested to us,
+
+120
+00:10:43,982 --> 00:10:46,412
+so we are going to restore it.
+
+121
+00:10:47,270 --> 00:10:49,132
+It will send again
+
+122
+00:10:49,702 --> 00:10:56,073
+the message, and now we change the file
+name to 5, leaving 4 with the error,
+
+123
+00:10:56,073 --> 00:11:00,684
+because we'll resend it through the
+application itself.
+
+124
+00:11:02,758 --> 00:11:04,556
+So we send 5.
+
+125
+00:11:05,670 --> 00:11:12,003
+And then it should refresh like this. It
+has refreshed, and now the system is back.
+
+126
+00:11:12,003 --> 00:11:16,428
+So this really validates what the
+Investigator brought us,
+
+127
+00:11:23,558 --> 00:11:28,908
+and also validates the tips from the RAG,
+which we did here with two models,
+
+128
+00:11:28,908 --> 00:11:34,188
+Gemini and Groq. I only showed Groq, but I
+could have shown Gemini as well.
+
+129
+00:11:41,158 --> 00:11:47,089
+It takes a while because it is processing
+everything that happened in the last five
+
+130
+00:11:47,089 --> 00:11:48,876
+minutes and bringing back
+
+131
+00:11:49,542 --> 00:11:51,244
+the results.
+
+132
+00:11:51,750 --> 00:11:53,150
+Okay?
+
+133
+00:11:56,838 --> 00:12:01,547
+So we can go there; this is the rule, it
+was created.
+
+134
+00:12:01,547 --> 00:12:08,210
+It has the part of the message that it
+checks for High, Critical or Medium,
+
+135
+00:12:08,210 --> 00:12:11,852
+and then sends to the Priority Operation,
+
+136
+00:12:12,902 --> 00:12:19,744
+or if it is none of those three severities, it
+sends to the regular File Output,
+
+137
+00:12:19,744 --> 00:12:20,788
+okay?
+
+138
+00:12:20,838 --> 00:12:27,504
+And then we can look at our messages
+again. This one, the one with the error,
+
+139
+00:12:27,504 --> 00:12:28,904
+we can resend.
+
+140
+00:12:30,758 --> 00:12:32,716
+Do a resend on it,
+
+141
+00:12:35,270 --> 00:12:41,388
+resend, and now we view the message,
+
+142
+00:12:42,662 --> 00:12:45,004
+this one, which is the one with the error.
+
+143
+00:12:46,694 --> 00:12:53,590
+We can see that now it managed to reach the
+destination and came back successfully.
+
+144
+00:12:53,590 --> 00:12:55,916
+Our project also includes...
+
+145
+00:12:58,534 --> 00:13:03,853
+the prompts. So we have a Git commit with
+all the prompts we used,
+
+146
+00:13:03,853 --> 00:13:08,849
+everything we did in the project, so that
+it can be consulted;
+
+147
+00:13:08,849 --> 00:13:15,135
+it will be included in the description.
+Okay? That concludes our presentation.
+
+148
+00:13:15,135 --> 00:13:17,472
+Thank you, see you next time!

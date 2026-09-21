@@ -1,6 +1,6 @@
 <!--
 RASCUNHO — para publicar na InterSystems Developer Community (comunidade PT).
-Preencher antes de publicar: [LINK_APLICACAO_OPEN_EXCHANGE], [LINK_VIDEO],
+Preencher antes de publicar: [LINK_APLICACAO_OPEN_EXCHANGE], [LINK_VIDEO], [LINK_PERFIL_DC],
 capturas de tela reais (hoje só há referência textual às telas).
 Tags obrigatórias do concurso: #Concurso #ConcursoProgramacaoIA #AIProgramContest
 -->
@@ -8,6 +8,7 @@ Tags obrigatórias do concurso: #Concurso #ConcursoProgramacaoIA #AIProgramConte
 # IRIS Production Guardian: construindo um copiloto de observabilidade para IRIS com IA — e documentando cada correção pelo caminho
 
 *Submissão para o Concurso de Programação da Comunidade de Desenvolvedores da InterSystems PT 2026.*
+*Autor (desenvolvimento individual, sem equipe): Sérgio Fernandes de Sousa Quinta — [LINK_PERFIL_DC]*
 *Aplicação: [LINK_APLICACAO_OPEN_EXCHANGE] · Repositório: [github.com/sergiofsq/iris-production-guardian](https://github.com/sergiofsq/iris-production-guardian) · Vídeo: [LINK_VIDEO]*
 
 ## O problema

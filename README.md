@@ -328,4 +328,4 @@ narrative detail in the community article accompanying the submission.
 
 ## License
 
-Not yet decided.
+MIT — see [LICENSE](LICENSE).
